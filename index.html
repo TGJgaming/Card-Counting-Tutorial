@@ -1,0 +1,3661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Card Counting Academy · Learn From Your Blackjack Tracker</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171b23; --panel2:#1f2430; --panel3:#252b38;
+    --line:#2d3444; --text:#eef1f7; --muted:#939cb0;
+    --green:#22c55e; --red:#ef4444; --amber:#f59e0b;
+    --blue:#3b82f6; --purple:#a855f7; --cyan:#06b6d4; --slate:#64748b;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{
+    margin:0;background:var(--bg);color:var(--text);
+    font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  a{color:#93c5fd}
+  code,.mono{
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+    font-size:0.9em;
+    background:#0c0f15;
+    padding:1px 6px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    color:#cbd5e1;
+  }
+
+  /* Header & Navigation */
+  header{
+    position:sticky;top:0;z-index:30;
+    background:rgba(15,17,21,.95);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .wrap{max-width:1240px;margin:0 auto;padding:12px 14px}
+  .hdr-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-badge{
+    width:36px;height:36px;border-radius:10px;
+    background:linear-gradient(135deg,#059669,#1d4ed8);
+    display:grid;place-items:center;font-size:19px;
+    box-shadow:0 4px 14px rgba(16,185,129,.25);
+  }
+  h1{font-size:17px;margin:0;font-weight:800;letter-spacing:.2px}
+  .sub-brand{font-size:12px;color:var(--muted)}
+  .hdr-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+  .progress-pill{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:5px 10px;border-radius:999px;
+    background:var(--panel2);border:1px solid var(--line);
+    font-size:12px;font-weight:700;color:#bbf7d0;
+  }
+  .prog-bar-mini{width:64px;height:6px;border-radius:999px;background:#0c0e13;overflow:hidden}
+  .prog-bar-mini > i{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#3b82f6);transition:width .25s}
+
+  nav.main-nav{display:flex;gap:6px;flex-wrap:wrap}
+  nav.main-nav button{
+    flex:1;min-width:120px;padding:9px 10px;border-radius:11px;
+    border:1px solid var(--line);background:var(--panel);
+    color:var(--muted);font-weight:700;font-size:13px;
+    cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  nav.main-nav button:hover{color:var(--text);border-color:#424c63}
+  nav.main-nav button.on{
+    background:linear-gradient(135deg,#059669,#1d4ed8);
+    border-color:#34d399;color:#fff;
+    box-shadow:0 4px 14px rgba(16,185,129,.22);
+  }
+  @media(max-width:720px){
+    header{position:static}
+    nav.main-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+    nav.main-nav button{min-width:0;white-space:normal;padding:8px 8px;font-size:12.5px}
+    .hdr-actions{margin-left:0}
+  }
+
+  /* Layout & Cards */
+  .card{
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);padding:16px;margin:12px 0;
+  }
+  .card-sub{
+    background:var(--panel2);border:1px solid var(--line);
+    border-radius:12px;padding:12px;
+  }
+  .split-2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start}
+  .split-even{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .grid{display:grid;gap:10px}
+  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  @media(max-width:860px){.split-2,.split-even{grid-template-columns:1fr}}
+  @media(max-width:680px){.g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:520px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+  h2{font-size:15px;margin:0 0 10px;font-weight:800;color:#dbeafe;letter-spacing:.2px}
+  h3{font-size:14px;margin:12px 0 6px;font-weight:700;color:#e2e8f0}
+  p{margin:0 0 10px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .sp{flex:1}
+  .mut{color:var(--muted)}
+  .small{font-size:12.5px}
+  .pos{color:var(--green)} .neg{color:var(--red)} .warn{color:var(--amber)} .cyan{color:var(--cyan)} .purp{color:#c084fc}
+  .hide{display:none!important}
+
+  /* Stats & Pills */
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .stat .k{font-size:11.5px;color:var(--muted);font-weight:600}
+  .stat .v{font-size:22px;font-weight:800;line-height:1.2;margin-top:2px}
+  .pill{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:11.5px;font-weight:700;padding:2px 8px;
+    border-radius:999px;background:#252c3b;color:#cbd5e1;
+    border:1px solid transparent;
+  }
+  .pill.green{background:#0e2b1a;border-color:#166534;color:#86efac}
+  .pill.red{background:#341315;border-color:#7f1d1d;color:#fecaca}
+  .pill.amber{background:#31220b;border-color:#854d0e;color:#fde68a}
+  .pill.blue{background:#122443;border-color:#1e40af;color:#93c5fd}
+  .pill.purple{background:#271342;border-color:#6b21a8;color:#d8b4fe}
+
+  /* Buttons & Inputs */
+  button,.btn{font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    padding:9px 14px;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--text);font-weight:700;
+    cursor:pointer;text-decoration:none;transition:all .12s;
+  }
+  .btn:hover:not(:disabled){border-color:#4b556b;background:var(--panel3)}
+  .btn:active:not(:disabled){transform:scale(.97)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn.sm{padding:6px 10px;font-size:12.5px;border-radius:8px}
+  .btn.xs{padding:4px 8px;font-size:11.5px;border-radius:7px}
+  .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  .btn.primary:hover:not(:disabled){background:#2563eb}
+  .btn.good{background:var(--green);border-color:var(--green);color:#04200d}
+  .btn.good:hover:not(:disabled){background:#16a34a}
+  .btn.amber{background:#d97706;border-color:#f59e0b;color:#fff}
+  .btn.danger{background:transparent;border-color:var(--red);color:#fca5a5}
+  .btn.purple{background:#7c3aed;border-color:#8b5cf6;color:#fff}
+  .btn.on{background:#172a4a;border-color:#60a5fa;color:#dbeafe}
+  .btn.wheels-on{background:#0f2b1b;border-color:#22c55e;color:#bbf7d0}
+
+  input[type=range]{width:100%;accent-color:#3b82f6;cursor:pointer}
+  select,input[type=number]{
+    font:inherit;color:var(--text);background:#0c0f15;
+    border:1px solid var(--line);border-radius:9px;padding:7px 10px;
+    max-width:100%;min-width:0;
+  }
+
+  /* Callouts */
+  .callout{border-radius:12px;padding:12px 14px;border:1px solid;margin:10px 0}
+  .callout.info{background:#101d35;border-color:#1e3a8a;color:#dbeafe}
+  .callout.warn{background:#291f0d;border-color:#854d0e;color:#fef3c7}
+  .callout.good{background:#0c2618;border-color:#166534;color:#dcfce7}
+  .callout.trap{background:#2d1215;border-color:#7f1d1d;color:#fecaca}
+  .callout.bridge{
+    background:linear-gradient(135deg,#121c2e,#18152d);
+    border-color:#4338ca;color:#e0e7ff;
+  }
+  .callout-title{font-weight:800;font-size:13.5px;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+
+  /* Realistic Playing Cards */
+  .felt{
+    background:radial-gradient(circle at 50% 25%,#123524 0%,#0b2117 65%,#081710 100%);
+    border:2px solid #1e4d35;border-radius:16px;padding:16px;
+    box-shadow:inset 0 0 36px rgba(0,0,0,.45);
+  }
+  .cards-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;min-height:92px}
+  .pcard-wrap{display:inline-flex;flex-direction:column;align-items:center;gap:5px;position:relative;transition:transform .15s,opacity .15s}
+  .pcard{
+    width:68px;height:96px;border-radius:10px;
+    background:linear-gradient(160deg,#ffffff 0%,#eef2f7 100%);
+    border:1px solid #cbd5e1;
+    box-shadow:0 6px 16px rgba(0,0,0,.45);
+    color:#0f172a;position:relative;
+    display:flex;flex-direction:column;justify-content:space-between;
+    padding:5px 7px;user-select:none;font-weight:800;
+    transition:transform .12s,box-shadow .12s,opacity .18s,filter .18s;
+  }
+  .pcard.red-suit{color:#dc2626}
+  .pcard.sm{width:48px;height:68px;padding:3px 5px;border-radius:8px}
+  .pcard.lg{width:88px;height:124px;padding:7px 9px;border-radius:12px}
+  .pcard .tl{font-size:14px;line-height:1;display:flex;flex-direction:column;align-items:center;width:fit-content}
+  .pcard.sm .tl{font-size:11px}
+  .pcard.lg .tl{font-size:18px}
+  .pcard .mid{
+    position:absolute;inset:0;display:grid;place-items:center;
+    font-size:28px;opacity:.92;pointer-events:none;
+  }
+  .pcard.sm .mid{font-size:19px}
+  .pcard.lg .mid{font-size:38px}
+  .pcard .br{
+    font-size:14px;line-height:1;display:flex;flex-direction:column;
+    align-items:center;width:fit-content;align-self:flex-end;transform:rotate(180deg);
+  }
+  .pcard.sm .br{font-size:11px}
+  .pcard.lg .br{font-size:18px}
+  .pcard.back{
+    background:repeating-linear-gradient(45deg,#1e3a8a,#1e3a8a 6px,#1d4ed8 6px,#1d4ed8 12px);
+    border:2px solid #e2e8f0;color:transparent;
+  }
+  .pcard.clickable{cursor:pointer}
+  .pcard.clickable:hover{transform:translateY(-4px);box-shadow:0 10px 20px rgba(0,0,0,.55)}
+  .pcard.selected{outline:3px solid #22d3ee;transform:translateY(-6px);box-shadow:0 0 18px rgba(34,211,238,.55)}
+  .pcard.cancelled{opacity:.26;filter:grayscale(85%);transform:scale(.92)}
+  .pcard-wrap.has-cancel::after{
+    content:'✕';position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);
+    font-size:34px;font-weight:900;color:#94a3b8;pointer-events:none;text-shadow:0 2px 6px #000;
+  }
+  .tag-badge{
+    font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;
+    border:1px solid;line-height:1.3;
+  }
+  .tag-badge.low{background:#0d2a19;border-color:#22c55e;color:#86efac}
+  .tag-badge.neu{background:#1e2634;border-color:#64748b;color:#cbd5e1}
+  .tag-badge.hi{background:#331215;border-color:#ef4444;color:#fecaca}
+
+  /* Lesson Stepper */
+  .lesson-stepper{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin-bottom:12px}
+  @media(max-width:860px){.lesson-stepper{grid-template-columns:repeat(4,minmax(0,1fr))}}
+  @media(max-width:480px){.lesson-stepper{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .l-step{
+    padding:8px 8px;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);text-align:left;cursor:pointer;
+    display:flex;flex-direction:column;gap:2px;transition:all .12s;
+  }
+  .l-step:hover{border-color:#4b556b;color:var(--text)}
+  .l-step.active{background:#16243d;border-color:#3b82f6;color:#fff;box-shadow:0 0 0 1px rgba(59,130,246,.4)}
+  .l-step.done{border-color:#166534;background:#0d2116}
+  .l-step.done.active{background:#12302a;border-color:#22c55e}
+  .l-step .num{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:flex;justify-content:space-between}
+  .l-step .ttl{font-size:12px;font-weight:700;line-height:1.25}
+
+  /* Quiz Block */
+  .quiz-box{
+    background:var(--panel2);border:1px solid #334155;
+    border-radius:13px;padding:14px;margin-top:14px;
+  }
+  .q-opt{
+    width:100%;text-align:left;padding:9px 12px;margin:5px 0;
+    border-radius:9px;border:1px solid var(--line);background:var(--panel);
+    color:var(--text);cursor:pointer;font-weight:600;font-size:13.5px;
+    transition:all .1s;
+  }
+  .q-opt:hover:not(:disabled){border-color:#60a5fa;background:#1a2232}
+  .q-opt.correct{background:#0f2e1c;border-color:#22c55e;color:#bbf7d0}
+  .q-opt.wrong{background:#341416;border-color:#ef4444;color:#fecaca}
+
+  /* Tables & Strategy Matrix */
+  .tbl-wrap{width:100%;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:700;font-size:12px}
+  td.r,th.r{text-align:right}
+  .strat-tbl{width:100%;border-collapse:collapse;font-size:11.5px;text-align:center}
+  .strat-tbl th,.strat-tbl td{padding:5px 3px;border:1px solid #262d3c;text-align:center;font-weight:800}
+  .strat-tbl td.c-S{background:#0f2f1c;color:#86efac;cursor:pointer}
+  .strat-tbl td.c-H{background:#2d2210;color:#fcd34d;cursor:pointer}
+  .strat-tbl td.c-D{background:#132647;color:#93c5fd;cursor:pointer}
+  .strat-tbl td.c-P{background:#2a1546;color:#d8b4fe;cursor:pointer}
+  .strat-tbl td:hover{outline:2px solid #fff;z-index:2;position:relative}
+
+  /* Meters & Canvas */
+  .meter{height:12px;border-radius:999px;background:#0c0f15;border:1px solid var(--line);overflow:hidden;position:relative}
+  .meter > i{display:block;height:100%;transition:width .25s}
+  .meter .marker{position:absolute;top:0;bottom:0;width:2px;background:#fbbf24}
+  canvas{width:100%;display:block;background:#0e1219;border:1px solid var(--line);border-radius:12px}
+
+  /* Drill sub-nav */
+  .subnav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .subnav button{
+    padding:8px 12px;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);font-weight:700;font-size:13px;cursor:pointer;
+  }
+  .subnav button.on{background:#1b2c4b;border-color:#60a5fa;color:#fff}
+
+  /* Animations */
+  @keyframes popIn{from{opacity:0;transform:scale(.9) translateY(6px)}to{opacity:1;transform:none}}
+  .pop-in{animation:popIn .16s ease-out}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .shake{animation:shake .22s ease-in-out}
+
+  /* Tape */
+  .tape{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+  .tape-item{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:3px 7px;border-radius:7px;font-size:12px;font-weight:700;
+    background:#10141c;border:1px solid var(--line);
+  }
+  .tape-item.low{border-color:#166534;color:#86efac}
+  .tape-item.hi{border-color:#7f1d1d;color:#fecaca}
+  .tape-item.neu{border-color:#334155;color:#cbd5e1}
+
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:24px 12px 44px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="hdr-top">
+      <div class="brand">
+        <div class="brand-badge">🃏</div>
+        <div>
+          <h1>Card Counting Academy</h1>
+          <div class="sub-brand">From Beginner to Confident Counter · Built Around Your Blackjack Tracker</div>
+        </div>
+      </div>
+      <div class="hdr-actions">
+        <span class="progress-pill" id="hdrProgressPill">
+          <span id="hdrProgText">0/8 Lessons</span>
+          <span class="prog-bar-mini"><i id="hdrProgFill" style="width:0%"></i></span>
+        </span>
+        <button class="btn xs" id="toggleWheelsBtn" title="Show or hide +1 / 0 / -1 color hints on playing cards">🏋️ Training Wheels: ON</button>
+        <a href="../blackjack-tracker/index.html" class="btn xs primary">⚡ Open Your Blackjack Tracker →</a>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <button data-tab="learn" class="on">🧭 1. Guided Lessons</button>
+      <button data-tab="drills">⚡ 2. Brain Drills</button>
+      <button data-tab="sandbox">🔬 3. Tracker Sandbox</button>
+      <button data-tab="reference">📖 4. Cheat Sheet</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="tab-learn"></section>
+  <section id="tab-drills" class="hide"></section>
+  <section id="tab-sandbox" class="hide"></section>
+  <section id="tab-reference" class="hide"></section>
+</main>
+
+<footer>
+  Progress &amp; drill personal bests saved locally in your browser (<code>localStorage</code>) · Zero external libraries · Designed as a human-brain companion to <a href="../blackjack-tracker/index.html">Playtech Live Blackjack Tracker</a>
+</footer>
+
+<script>
+/* ============================================================================
+   1. STATE, PERSISTENCE & CONSTANTS
+   ============================================================================ */
+const STORAGE_KEY = 'cardCountingAcademy.v1';
+
+// Hi-Lo Tags matching blackjack-tracker: 0 = 10/J/Q/K (-1), 1 = Ace (-1), 2..6 = +1, 7..9 = 0
+const HILO_TAG = {0:-1, 1:-1, 2:1, 3:1, 4:1, 5:1, 6:1, 7:0, 8:0, 9:0};
+const RANK_LABEL = {1:'A', 2:'2', 3:'3', 4:'4', 5:'5', 6:'6', 7:'7', 8:'8', 9:'9', 0:'10'};
+const FACE_LABELS = ['10','J','Q','K'];
+const SUITS = [
+  {code:'S', sym:'♠', red:false},
+  {code:'H', sym:'♥', red:true},
+  {code:'D', sym:'♦', red:true},
+  {code:'C', sym:'♣', red:false}
+];
+
+// Single-Deck Effect of Removal (% player edge change per 1 card removed from 52 cards)
+// Matches EOR_1DECK_PCT in blackjack-tracker/index.html
+const EOR_1DECK_PCT = {
+  1: -0.59, 2: +0.38, 3: +0.44, 4: +0.55, 5: +0.69,
+  6: +0.46, 7: +0.28, 8: +0.01, 9: -0.18, 0: -0.51
+};
+
+const TABLE_SPECS = {
+  allbets: {
+    id: 'allbets',
+    name: 'Playtech All Bets (8-Deck · ~50% Cut · S17 · Ace-Peek)',
+    short: 'Playtech All Bets 8D',
+    decks: 8, cutPct: 50, baseEdge: -0.0054,
+    peekAce: true, peekTen: false, oboTen: true, s17: true, das: true, charlie10: true
+  },
+  vegas6: {
+    id: 'vegas6',
+    name: 'Classic Vegas 6-Deck (75% Cut · S17 · A/10 Peek)',
+    short: 'Vegas 6-Deck 75% Cut',
+    decks: 6, cutPct: 75, baseEdge: -0.0042,
+    peekAce: true, peekTen: true, oboTen: true, s17: true, das: true, charlie10: false
+  }
+};
+
+function defaultState(){
+  return {
+    tab: 'learn',
+    lessonIdx: 0,
+    completedLessons: [],
+    quizAnswers: {}, // e.g. {'L1Q0': true}
+    trainingWheels: true,
+    drillMode: 'flash', // 'flash' | 'cancel' | 'countdown' | 'tcmath' | 'deviations'
+    bests: {
+      flashBestMs: null,
+      flashBestStreak: 0,
+      cancelBestStreak: 0,
+      countdownPasses: 0,
+      tcMathStreak: 0,
+      devBestStreak: 0
+    }
+  };
+}
+
+let S = loadState();
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    const def = defaultState();
+    return {
+      ...def,
+      ...parsed,
+      bests: {...def.bests, ...(parsed.bests || {})},
+      quizAnswers: parsed.quizAnswers || {},
+      completedLessons: Array.isArray(parsed.completedLessons) ? parsed.completedLessons : []
+    };
+  }catch(_){
+    return defaultState();
+  }
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); }catch(_){}
+  updateHeaderUI();
+}
+
+function fmtSign(n, d=0){
+  const v = Number(n) || 0;
+  return (v >= 0 ? '+' : '-') + '₱' + Math.abs(v).toFixed(d);
+}
+function fmtPeso(n, d=0){
+  const v = Number(n) || 0;
+  return '₱' + v.toLocaleString(undefined, {minimumFractionDigits:d, maximumFractionDigits:d});
+}
+function pct(x, d=2){ return (x * 100).toFixed(d) + '%'; }
+function pctSign(x, d=2){ return (x >= 0 ? '+' : '') + (x * 100).toFixed(d) + '%'; }
+function hiloClass(tag){ return tag > 0 ? 'low' : (tag < 0 ? 'hi' : 'neu'); }
+function hiloText(tag){ return tag > 0 ? '+1' : (tag < 0 ? '-1' : '0'); }
+
+/* ============================================================================
+   2. DECK ENGINE, VISUAL CARDS & EXACT COMBINATORIAL DP SOLVER
+   ============================================================================ */
+function makeCardObj(rank, faceOpt, suitOpt){
+  const r = rank === 10 ? 0 : rank;
+  const suit = suitOpt || SUITS[Math.floor(Math.random() * 4)];
+  const face = faceOpt || (r === 0 ? FACE_LABELS[Math.floor(Math.random() * 4)] : RANK_LABEL[r]);
+  return { rank: r, face, suit, tag: HILO_TAG[r] };
+}
+
+function createShuffledShoe(decks = 1){
+  const cards = [];
+  for(let d = 0; d < decks; d++){
+    for(const suit of SUITS){
+      for(let r = 1; r <= 9; r++) cards.push(makeCardObj(r, RANK_LABEL[r], suit));
+      for(const f of FACE_LABELS) cards.push(makeCardObj(0, f, suit));
+    }
+  }
+  for(let i = cards.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  return cards;
+}
+
+function renderCardHTML(card, opts = {}){
+  const sizeCls = opts.size ? opts.size : '';
+  const showWheels = opts.showWheels !== undefined ? opts.showWheels : S.trainingWheels;
+  if(opts.faceDown){
+    return `<div class="pcard-wrap"><div class="pcard back ${sizeCls}"></div>${showWheels ? '<span class="tag-badge neu">?</span>' : ''}</div>`;
+  }
+  const suitCls = card.suit.red ? 'red-suit' : '';
+  const clickCls = opts.clickable ? 'clickable' : '';
+  const selCls = opts.selected ? 'selected' : '';
+  const canCls = opts.cancelled ? 'cancelled' : '';
+  const wrapCanCls = opts.cancelled ? 'has-cancel' : '';
+  const dataAttr = opts.dataIdx !== undefined ? `data-cidx="${opts.dataIdx}"` : '';
+  const tagBadge = showWheels
+    ? `<span class="tag-badge ${hiloClass(card.tag)}">${hiloText(card.tag)}</span>`
+    : '';
+  return `
+    <div class="pcard-wrap ${wrapCanCls} ${opts.animate ? 'pop-in' : ''}" ${dataAttr}>
+      <div class="pcard ${sizeCls} ${suitCls} ${clickCls} ${selCls} ${canCls}">
+        <div class="tl"><span>${card.face}</span><span>${card.suit.sym}</span></div>
+        <div class="mid">${card.suit.sym}</div>
+        <div class="br"><span>${card.face}</span><span>${card.suit.sym}</span></div>
+      </div>
+      ${tagBadge}
+    </div>
+  `;
+}
+
+function renderDiscardRackSVG(dealtCount, totalCards, cutPct = 50){
+  const decks = Math.round(totalCards / 52);
+  const dealtDecks = dealtCount / 52;
+  const remDecks = Math.max(0, (totalCards - dealtCount) / 52);
+  const cutDecks = (totalCards * (cutPct / 100)) / 52;
+  const H = 160, trayTop = 14, trayH = 132;
+  const dealtH = Math.min(trayH, (dealtDecks / decks) * trayH);
+  const cutY = trayTop + trayH - Math.min(trayH, (cutDecks / decks) * trayH);
+  const remH = Math.min(trayH, (remDecks / decks) * trayH);
+
+  let ticks = '';
+  for(let d = 1; d < decks; d++){
+    const y = trayTop + trayH - (d / decks) * trayH;
+    ticks += `<line x1="22" y1="${y.toFixed(1)}" x2="104" y2="${y.toFixed(1)}" stroke="#475569" stroke-width="1" stroke-dasharray="2,2"/>`;
+    ticks += `<text x="16" y="${(y + 3.5).toFixed(1)}" fill="#94a3b8" font-size="9.5" text-anchor="end">${d}D</text>`;
+  }
+
+  let remTicks = '';
+  for(let d = 1; d < decks; d++){
+    const y = trayTop + trayH - (d / decks) * trayH;
+    remTicks += `<line x1="146" y1="${y.toFixed(1)}" x2="228" y2="${y.toFixed(1)}" stroke="#475569" stroke-width="1" stroke-dasharray="2,2"/>`;
+  }
+
+  // Subtle card-edge lines inside dealt stack
+  let stackLines = '';
+  const step = 4;
+  for(let y = trayTop + trayH - 4; y > trayTop + trayH - dealtH + 2; y -= step){
+    stackLines += `<line x1="26" y1="${y.toFixed(1)}" x2="100" y2="${y.toFixed(1)}" stroke="#cbd5e1" stroke-width="0.9" opacity="0.55"/>`;
+  }
+  let remStackLines = '';
+  for(let y = trayTop + trayH - 4; y > trayTop + trayH - remH + 2; y -= step){
+    remStackLines += `<line x1="150" y1="${y.toFixed(1)}" x2="224" y2="${y.toFixed(1)}" stroke="#60a5fa" stroke-width="0.9" opacity="0.45"/>`;
+  }
+
+  return `
+    <svg viewBox="0 0 250 174" style="width:100%;max-width:300px;display:block;margin:0 auto;background:#0d1118;border:1px solid #2d3444;border-radius:12px">
+      <text x="63" y="11" fill="#94a3b8" font-size="9.5" font-weight="700" text-anchor="middle">DISCARD TRAY (${dealtDecks.toFixed(1)}D)</text>
+      <text x="187" y="11" fill="#93c5fd" font-size="9.5" font-weight="700" text-anchor="middle">REMAINING (${remDecks.toFixed(1)}D)</text>
+
+      <!-- Discard Tray Outline -->
+      <rect x="22" y="${trayTop}" width="82" height="${trayH}" rx="4" fill="#131924" stroke="#3b4559" stroke-width="1.5"/>
+      <rect x="24" y="${(trayTop + trayH - dealtH).toFixed(1)}" width="78" height="${dealtH.toFixed(1)}" rx="2" fill="#e2e8f0" opacity="0.88"/>
+      ${stackLines}
+      ${ticks}
+      <!-- Cut Marker on Discard Tray -->
+      <line x1="20" y1="${cutY.toFixed(1)}" x2="106" y2="${cutY.toFixed(1)}" stroke="#f59e0b" stroke-width="2"/>
+      <text x="109" y="${(cutY + 3).toFixed(1)}" fill="#fbbf24" font-size="8.5" font-weight="700">CUT</text>
+
+      <!-- Remaining Shoe Outline -->
+      <rect x="146" y="${trayTop}" width="82" height="${trayH}" rx="4" fill="#131924" stroke="#3b4559" stroke-width="1.5"/>
+      <rect x="148" y="${(trayTop + trayH - remH).toFixed(1)}" width="78" height="${remH.toFixed(1)}" rx="2" fill="#1e3a8a" opacity="0.9"/>
+      ${remStackLines}
+      ${remTicks}
+
+      <text x="63" y="164" fill="#cbd5e1" font-size="10.5" font-weight="700" text-anchor="middle">${dealtCount} dealt</text>
+      <text x="187" y="164" fill="#93c5fd" font-size="10.5" font-weight="700" text-anchor="middle">${totalCards - dealtCount} left</text>
+    </svg>
+  `;
+}
+
+// Normal CDF approximation (Abramowitz & Stegun) for Dead-Shoe Wong-Out Probability
+function normCDF(x){
+  const t = 1 / (1 + 0.2316419 * Math.abs(x));
+  const d = 0.39894228 * Math.exp(-x * x / 2);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return x > 0 ? 1 - p : p;
+}
+
+function calcReachPlusEvProb(rc, totalRem, cutCards, estPenCards, targetTC = 1.5){
+  const cardsToCut = Math.max(0, cutCards - estPenCards);
+  if(rc / Math.max(0.25, totalRem / 52) >= targetTC) return 1.0;
+  if(cardsToCut < 4) return 0.0;
+  const remDecksAtCut = Math.max(0.5, (totalRem - cardsToCut) / 52);
+  const needRC = targetTC * remDecksAtCut;
+  const delta = needRC - rc;
+  if(delta <= 0) return 0.99;
+  const sd = Math.sqrt(cardsToCut * 0.77);
+  const raw = 2 * (1 - normCDF(delta / sd));
+  return Math.max(0.005, Math.min(0.95, raw));
+}
+
+let _dealerDistCache = { key: '', val: null };
+function getDealerDistAllUpcards(rem, totalRem){
+  const key = rem.map(x => x.toFixed(2)).join(',') + '|' + totalRem.toFixed(2);
+  if(_dealerDistCache.key === key && _dealerDistCache.val) return _dealerDistCache.val;
+
+  const tot = Math.max(1, totalRem);
+  const probs = rem.map(c => c / tot);
+  const memo = new Map();
+
+  function rec(sum, sa, nc){
+    while(sum > 21 && sa > 0){ sum -= 10; sa--; }
+    if(nc === 2 && sum === 21) return [1,0,0,0,0,0,0];
+    if(sum > 21) return [0,0,0,0,0,0,1];
+    if(sum >= 17){
+      const a = [0,0,0,0,0,0,0];
+      a[sum - 16] = 1;
+      return a;
+    }
+    const k = (sum << 6) | (sa << 3) | Math.min(nc, 7);
+    const hit = memo.get(k);
+    if(hit) return hit;
+    const acc = [0,0,0,0,0,0,0];
+    for(let r=0; r<=9; r++){
+      const p = probs[r];
+      if(!p) continue;
+      const v = r === 1 ? 11 : (r === 0 ? 10 : r);
+      const sub = rec(sum + v, sa + (r === 1 ? 1 : 0), nc + 1);
+      for(let i=0; i<7; i++) acc[i] += p * sub[i];
+    }
+    memo.set(k, acc);
+    return acc;
+  }
+
+  const byUp = [];
+  for(let u=0; u<=9; u++){
+    const uv = u === 1 ? 11 : (u === 0 ? 10 : u);
+    byUp[u] = rec(uv, u === 1 ? 1 : 0, 1);
+  }
+  const res = { probs, byUp };
+  _dealerDistCache = { key, val: res };
+  return res;
+}
+
+function solveLiveHandDP(pCards, dUp, rem, totalRem, tSpec = TABLE_SPECS.allbets, opts = {}){
+  if(dUp === 10) dUp = 0;
+  const isSplitHand = !!opts.isSplitHand;
+  const fromAceSplit = !!opts.fromAceSplit;
+  const canSplitMore = opts.canSplitMore !== undefined ? !!opts.canSplitMore : !isSplitHand;
+  const peekAce = tSpec.peekAce !== undefined ? !!tSpec.peekAce : true;
+  const peekTen = tSpec.peekTen !== undefined ? !!tSpec.peekTen : false;
+  const oboTen = tSpec.oboTen !== undefined ? !!tSpec.oboTen : true;
+  const das = tSpec.das !== undefined ? !!tSpec.das : true;
+  const charlie10 = !!tSpec.charlie10;
+
+  const { probs, byUp } = getDealerDistAllUpcards(rem, totalRem);
+  const ddRaw = byUp[dUp] || byUp[0];
+  const pBJRaw = ddRaw[0];
+  const peekedNoBJ = (dUp === 1 && peekAce) || (dUp === 0 && peekTen);
+  const dd = (peekedNoBJ && pBJRaw < 0.999999)
+    ? [0, ddRaw[1]/(1-pBJRaw), ddRaw[2]/(1-pBJRaw), ddRaw[3]/(1-pBJRaw), ddRaw[4]/(1-pBJRaw), ddRaw[5]/(1-pBJRaw), ddRaw[6]/(1-pBJRaw)]
+    : ddRaw;
+  const pBJLive = dd[0];
+
+  function standEV(tot, nc){
+    if(tot > 21) return -1.0;
+    if(charlie10 && nc >= 10) return (1.0 - pBJLive) - pBJLive;
+    let ev = -pBJLive + dd[6];
+    for(let i=0; i<5; i++){
+      const dtot = 17 + i;
+      if(tot > dtot) ev += dd[1 + i];
+      else if(tot < dtot) ev -= dd[1 + i];
+    }
+    return ev;
+  }
+
+  const pmemo = new Map();
+  function playRec(tot, sa, nc){
+    while(tot > 21 && sa > 0){ tot -= 10; sa--; }
+    if(tot > 21) return -1.0;
+    if(charlie10 && nc >= 10) return standEV(tot, nc);
+    const k = (tot << 6) | (sa << 4) | (charlie10 ? nc : Math.min(nc, 3));
+    const hit = pmemo.get(k);
+    if(hit !== undefined) return hit;
+    const evS = standEV(tot, nc);
+    let evH = 0;
+    for(let r=0; r<=9; r++){
+      const p = probs[r];
+      if(!p) continue;
+      const v = r === 1 ? 11 : (r === 0 ? 10 : r);
+      evH += p * playRec(tot + v, sa + (r === 1 ? 1 : 0), nc + 1);
+    }
+    const best = evS > evH ? evS : evH;
+    pmemo.set(k, best);
+    return best;
+  }
+
+  let ptot = 0, psa = 0;
+  for(const c of pCards){
+    if(c === 1){ ptot += 11; psa++; }
+    else if(c === 0){ ptot += 10; }
+    else { ptot += c; }
+  }
+  while(ptot > 21 && psa > 0){ ptot -= 10; psa--; }
+  const nc = pCards.length;
+
+  const evS = standEV(ptot, nc);
+  let evH = 0;
+  for(let r=0; r<=9; r++){
+    const p = probs[r];
+    if(!p) continue;
+    const v = r === 1 ? 11 : (r === 0 ? 10 : r);
+    evH += p * playRec(ptot + v, psa + (r === 1 ? 1 : 0), nc + 1);
+  }
+
+  let evD = null;
+  if(nc === 2 && !fromAceSplit && (!isSplitHand || das)){
+    let rawD = 0;
+    for(let r=0; r<=9; r++){
+      const p = probs[r];
+      if(!p) continue;
+      const v = r === 1 ? 11 : (r === 0 ? 10 : r);
+      let nt = ptot + v, ns = psa + (r === 1 ? 1 : 0);
+      while(nt > 21 && ns > 0){ nt -= 10; ns--; }
+      rawD += p * standEV(nt, 3);
+    }
+    evD = 2.0 * rawD + (dUp === 0 && !peekTen && oboTen ? pBJLive : 0.0);
+  }
+
+  let evP = null;
+  if(nc === 2 && pCards[0] === pCards[1] && !fromAceSplit && canSplitMore){
+    const r0 = pCards[0];
+    const v0 = r0 === 1 ? 11 : (r0 === 0 ? 10 : r0);
+    const sa0 = r0 === 1 ? 1 : 0;
+    let oneHand = 0;
+    for(let r=0; r<=9; r++){
+      const p = probs[r];
+      if(!p) continue;
+      const v = r === 1 ? 11 : (r === 0 ? 10 : r);
+      let nt = v0 + v, ns = sa0 + (r === 1 ? 1 : 0);
+      while(nt > 21 && ns > 0){ nt -= 10; ns--; }
+      if(r0 === 1){
+        oneHand += p * standEV(nt, 2);
+      } else {
+        let best2 = playRec(nt, ns, 2);
+        if(das){
+          let rawD2 = 0;
+          for(let r2=0; r2<=9; r2++){
+            const p2 = probs[r2];
+            if(!p2) continue;
+            const v2 = r2 === 1 ? 11 : (r2 === 0 ? 10 : r2);
+            let nt2 = nt + v2, ns2 = ns + (r2 === 1 ? 1 : 0);
+            while(nt2 > 21 && ns2 > 0){ nt2 -= 10; ns2--; }
+            rawD2 += p2 * standEV(nt2, 3);
+          }
+          const dbl2 = 2.0 * rawD2 + (dUp === 0 && !peekTen && oboTen ? pBJLive : 0.0);
+          if(dbl2 > best2) best2 = dbl2;
+        }
+        oneHand += p * best2;
+      }
+    }
+    evP = 2.0 * oneHand + (dUp === 0 && !peekTen && oboTen ? pBJLive : 0.0);
+  }
+
+  const cands = [{code:'S', ev:evS}, {code:'H', ev:evH}];
+  if(evD !== null) cands.push({code:'D', ev:evD});
+  if(evP !== null) cands.push({code:'P', ev:evP});
+  cands.sort((a,b) => b.ev - a.ev);
+  return {
+    evStand: evS, evHit: evH, evDouble: evD, evSplit: evP,
+    bestCode: cands[0].code, bestEV: cands[0].ev,
+    secondCode: cands[1].code, marginEV: cands[0].ev - cands[1].ev
+  };
+}
+
+function evalHand(cards, isSplitHand = false){
+  let sum = 0, aces = 0;
+  for(const c of cards){
+    if(c === 1){ sum += 11; aces++; }
+    else if(c === 0){ sum += 10; }
+    else { sum += c; }
+  }
+  while(sum > 21 && aces > 0){ sum -= 10; aces--; }
+  return {
+    sum, isSoft: aces > 0 && sum <= 21,
+    isPair: cards.length === 2 && cards[0] === cards[1],
+    isBJ: !isSplitHand && cards.length === 2 && sum === 21,
+    isBust: sum > 21, nCards: cards.length
+  };
+}
+
+function computeShoeMetrics(rem, decks = 8, cutPct = 50, tSpec = TABLE_SPECS.allbets){
+  const totalInit = 52 * decks;
+  const init = [16*decks, 4*decks, 4*decks, 4*decks, 4*decks, 4*decks, 4*decks, 4*decks, 4*decks, 4*decks];
+  let totalRem = 0, rc = 0;
+  for(let r = 0; r <= 9; r++){
+    totalRem += rem[r];
+    rc += (init[r] - rem[r]) * HILO_TAG[r];
+  }
+  const seenCount = totalInit - totalRem;
+  const remDecks = Math.max(0.25, totalRem / 52);
+  const tc = rc / remDecks;
+  const tenProb = totalRem > 0 ? rem[0] / totalRem : 4/13;
+  const aceProb = totalRem > 0 ? rem[1] / totalRem : 1/13;
+  const bjProb = totalRem > 1 ? (2 * rem[1] * rem[0]) / (totalRem * (totalRem - 1)) : 0.04749;
+  const insEv = 3 * tenProb - 1;
+
+  // Hi-Lo linear edge & EoR edge matching blackjack-tracker
+  const hiloEdge = tSpec.baseEdge + 0.0050 * tc;
+  let eorShiftPct = 0;
+  for(let r=0; r<=9; r++){
+    const removedOfRank = init[r] - rem[r];
+    const netRemoved = removedOfRank - seenCount * (init[r] / totalInit);
+    eorShiftPct += netRemoved * EOR_1DECK_PCT[r] * (1 / remDecks);
+  }
+  const devGain = tc > 0.5
+    ? Math.min(0.0022, (tc - 0.5) * 0.00055)
+    : Math.min(0.0004, Math.max(0, (-tc - 1.0) * 0.00015));
+  const eorEdge = tSpec.baseEdge + (eorShiftPct / 100) + devGain;
+
+  const { byUp } = getDealerDistAllUpcards(rem, totalRem);
+  const stiffBustAvg = (byUp[4][6] + byUp[5][6] + byUp[6][6]) / 3;
+  const cutCards = Math.round(totalInit * (cutPct / 100));
+  const reachPlusProb = calcReachPlusEvProb(rc, totalRem, cutCards, seenCount, 1.5);
+
+  return {
+    rc, tc, seenCount, totalRem, totalInit, remDecks, cutCards,
+    tenProb, aceProb, bjProb, insEv, hiloEdge, eorEdge, stiffBustAvg, reachPlusProb
+  };
+}
+
+function buildSyntheticShoeAtTC(tc, remDecks = 4){
+  const totalRem = 52 * remDecks;
+  const rc = tc * remDecks;
+  const rem = new Array(10).fill(0);
+  rem[0] = Math.max(1, 16 * remDecks + 0.4 * rc);
+  rem[1] = Math.max(1, 4 * remDecks + 0.1 * rc);
+  for(let r = 2; r <= 6; r++) rem[r] = Math.max(1, 4 * remDecks - 0.1 * rc);
+  for(let r = 7; r <= 9; r++) rem[r] = 4 * remDecks;
+  return { rem, totalRem: rem.reduce((a,b)=>a+b, 0) };
+}
+
+const DEVIATION_CATALOG = [
+  {
+    id:'ins', title:'Insurance vs Dealer Ace',
+    pCards:[0,8], dUp:1, isInsurance:true,
+    basic:'DECLINE', dev:'TAKE INS', indexTC:3.0, dir:'>=',
+    why:'Insurance pays 2:1, so it breaks even when remaining 10s exceed 33.3% (1/3). In a fresh shoe 10s are 30.8% (-7.7% EV). At TC ≥ +3, 10s cross 33.3% and Insurance becomes profitable!'
+  },
+  {
+    id:'16v10', title:'Hard 16 (10,6) vs Dealer 10',
+    pCards:[0,6], dUp:0,
+    basic:'H', dev:'S', indexTC:0.0, dir:'>=',
+    why:'16 vs 10 is razor-close in a fresh shoe. As soon as TC ≥ 0 (even slightly ten-rich), hitting risks busting with a 10 too often while the dealer also risks busting on a stiff hidden card — so Stand!'
+  },
+  {
+    id:'15v10', title:'Hard 15 (10,5) vs Dealer 10',
+    pCards:[0,5], dUp:0,
+    basic:'H', dev:'S', indexTC:4.0, dir:'>=',
+    why:'Hard 15 needs a slightly safer hit than 16 (6 helps you!), so Basic Strategy hits. Only when the shoe is packed with 10s (TC ≥ +4) does hitting become worse than standing.'
+  },
+  {
+    id:'12v3', title:'Hard 12 (10,2) vs Dealer 3',
+    pCards:[0,2], dUp:3,
+    basic:'H', dev:'S', indexTC:2.0, dir:'>=',
+    why:'Against a weak Dealer 3, Basic Strategy hits 12 because 3 is slightly less likely to bust than 4–6. At TC ≥ +2, extra 10s make both YOU bust more on a hit AND the dealer bust more on 13!'
+  },
+  {
+    id:'12v2', title:'Hard 12 (10,2) vs Dealer 2',
+    pCards:[0,2], dUp:2,
+    basic:'H', dev:'S', indexTC:3.0, dir:'>=',
+    why:'Dealer 2 busts less often than 3, so it takes a richer shoe (TC ≥ +3) before Standing on 12 beats Hitting.'
+  },
+  {
+    id:'12v4', title:'Hard 12 (10,2) vs Dealer 4 (Reverse Deviation!)',
+    pCards:[0,2], dUp:4,
+    basic:'S', dev:'H', indexTC:0.0, dir:'<',
+    why:'Deviations work in negative counts too! In a low-card-rich shoe (TC < 0), your 12 rarely busts on a hit AND Dealer 4 busts less often — so Hit instead of Standing!'
+  },
+  {
+    id:'11vA', title:'Hard 11 (6,5) vs Dealer Ace (S17)',
+    pCards:[6,5], dUp:1,
+    basic:'H', dev:'D', indexTC:1.0, dir:'>=',
+    why:'In 8-deck S17, 11 vs Ace is slightly too risky to Double on a fresh shoe (Basic Strategy = Hit). At TC ≥ +1, extra 10s boost your chance of landing 21 — Double Down!'
+  },
+  {
+    id:'9v2', title:'Hard 9 (5,4) vs Dealer 2',
+    pCards:[5,4], dUp:2,
+    basic:'H', dev:'D', indexTC:1.0, dir:'>=',
+    why:'At TC ≥ +1, your 9 has a better chance of hitting 19 while Dealer 2 has more 12s that bust — making Double Down profitable.'
+  },
+  {
+    id:'10v10', title:'Hard 10 (6,4) vs Dealer 10',
+    pCards:[6,4], dUp:0,
+    basic:'H', dev:'D', indexTC:4.0, dir:'>=',
+    why:'Normally you only Hit 10 vs 10 (dealer often has 20). At TC ≥ +4, extra 10s & Aces swing Double Down to +EV!'
+  }
+];
+
+/* Fast Basic Strategy + I18 Lookup for 1,000-Shoe Monte Carlo Simulator */
+function fastPlayAction(sum, isSoft, isPair, pairRank, dUp, tc, canDouble, canSplit){
+  const u = dUp === 0 ? 10 : (dUp === 1 ? 11 : dUp);
+  if(canSplit){
+    if(pairRank === 1 || pairRank === 8) return 'P';
+    if(pairRank === 9 && u !== 7 && u !== 10 && u !== 11) return 'P';
+    if((pairRank === 2 || pairRank === 3 || pairRank === 7) && u >= 2 && u <= 7) return 'P';
+    if(pairRank === 6 && u >= 2 && u <= 6) return 'P';
+    if(pairRank === 4 && (u === 5 || u === 6)) return 'P';
+  }
+  if(isSoft){
+    if(sum >= 19) return 'S';
+    if(sum === 18){
+      if(u >= 3 && u <= 6) return canDouble ? 'D' : 'S';
+      if(u === 2 || u === 7 || u === 8) return 'S';
+      return 'H';
+    }
+    if(sum === 17 && u >= 3 && u <= 6) return canDouble ? 'D' : 'H';
+    if((sum === 15 || sum === 16) && u >= 4 && u <= 6) return canDouble ? 'D' : 'H';
+    if((sum === 13 || sum === 14) && (u === 5 || u === 6)) return canDouble ? 'D' : 'H';
+    return 'H';
+  }
+  // Hard totals + Key I18 Deviations
+  if(sum >= 17) return 'S';
+  if(sum === 16){
+    if(u === 10 && tc >= 0) return 'S';
+    return u <= 6 ? 'S' : 'H';
+  }
+  if(sum === 15){
+    if(u === 10 && tc >= 4) return 'S';
+    return u <= 6 ? 'S' : 'H';
+  }
+  if(sum === 13 || sum === 14) return u <= 6 ? 'S' : 'H';
+  if(sum === 12){
+    if(u === 2 && tc >= 3) return 'S';
+    if(u === 3 && tc >= 2) return 'S';
+    if(u === 4 && tc < 0) return 'H';
+    return (u >= 4 && u <= 6) ? 'S' : 'H';
+  }
+  if(sum === 11){
+    if(u === 11 && tc < 1) return 'H';
+    return canDouble ? 'D' : 'H';
+  }
+  if(sum === 10){
+    if((u === 10 || u === 11) && tc >= 4 && canDouble) return 'D';
+    return (u <= 9 && canDouble) ? 'D' : 'H';
+  }
+  if(sum === 9){
+    if(u === 2 && tc >= 1 && canDouble) return 'D';
+    return (u >= 3 && u <= 6 && canDouble) ? 'D' : 'H';
+  }
+  return 'H';
+}
+
+function runMonteCarloSim({decks = 8, cutPct = 50, mode = 'wong', shoesPerPlayer = 100, numPlayers = 10, unitPeso = 50, startBankroll = 5000}){
+  const totalInit = 52 * decks;
+  const cutCards = Math.round(totalInit * (cutPct / 100));
+  const numShoes = shoesPerPlayer * numPlayers;
+  const paths = Array.from({length: numPlayers}, () => [startBankroll]);
+  const avgCurve = new Float64Array(shoesPerPlayer + 1);
+  avgCurve[0] = startBankroll;
+
+  const baseShoe = new Int8Array(totalInit);
+  let idx = 0;
+  for(let d = 0; d < decks; d++){
+    for(let s = 0; s < 4; s++){
+      for(let r = 1; r <= 9; r++) baseShoe[idx++] = r;
+      for(let t = 0; t < 4; t++) baseShoe[idx++] = 0;
+    }
+  }
+
+  let shoesHit15 = 0, totalRounds = 0, posRounds = 0, betRounds = 0;
+  let totalProfit = 0, totalWagered = 0, busts = 0, maxDrawdownSum = 0;
+
+  for(let pIdx = 0; pIdx < numPlayers; pIdx++){
+    let bank = startBankroll, peak = startBankroll, maxDD = 0, busted = false;
+    for(let sh = 0; sh < shoesPerPlayer; sh++){
+      const shoe = baseShoe.slice();
+      for(let i = totalInit - 1; i > 0; i--){
+        const j = (Math.random() * (i + 1)) | 0;
+        const tmp = shoe[i]; shoe[i] = shoe[j]; shoe[j] = tmp;
+      }
+
+      let pos = 0, rc = 0, shoeHit15 = false, shoeNet = 0;
+      const draw = () => {
+        const c = shoe[pos++];
+        rc += HILO_TAG[c];
+        return c;
+      };
+
+      while(pos < cutCards){
+        const remCards = totalInit - pos;
+        const tc = rc / Math.max(0.25, remCards / 52);
+        totalRounds++;
+        if(tc >= 1.5){ posRounds++; shoeHit15 = true; }
+
+        let units = 0;
+        if(mode === 'flat'){
+          units = 1;
+        } else if(mode === 'playall'){
+          if(tc >= 4.0) units = 4;
+          else if(tc >= 3.0) units = 3;
+          else if(tc >= 2.0) units = 2;
+          else units = 1;
+        } else {
+          if(tc >= 4.0) units = 4;
+          else if(tc >= 3.0) units = 3;
+          else if(tc >= 2.0) units = 2;
+          else if(tc >= 1.5) units = 1;
+          else units = 0;
+        }
+
+        if(units === 0){
+          for(let w = 0; w < 6 && pos < totalInit - 10; w++) draw();
+          continue;
+        }
+
+        betRounds++;
+        const stake = units * unitPeso;
+        totalWagered += stake;
+
+        const p1 = draw(), d1 = draw(), p2 = draw(), d2 = draw();
+        const pBJ = (p1 === 1 && p2 === 0) || (p1 === 0 && p2 === 1);
+        const dBJ = (d1 === 1 && d2 === 0) || (d1 === 0 && d2 === 1);
+
+        let roundNet = 0;
+        if(d1 === 1 && tc >= 3.0 && mode !== 'flat'){
+          roundNet += dBJ ? stake : -stake * 0.5;
+        }
+
+        if(pBJ || dBJ){
+          if(pBJ && dBJ) roundNet += 0;
+          else if(pBJ) roundNet += stake * 1.5;
+          else roundNet -= stake;
+        } else {
+          const hands = [{cards:[p1, p2], bet:stake, isSplit:false, fromAce:false}];
+          for(let hi = 0; hi < hands.length; hi++){
+            const h = hands[hi];
+            while(true){
+              let sum = 0, aces = 0;
+              for(const c of h.cards){
+                if(c === 1){ sum += 11; aces++; } else if(c === 0) sum += 10; else sum += c;
+              }
+              while(sum > 21 && aces > 0){ sum -= 10; aces--; }
+              if(sum >= 21 || h.fromAce) break;
+              const curTC = rc / Math.max(0.25, (totalInit - pos) / 52);
+              const isPair = h.cards.length === 2 && h.cards[0] === h.cards[1];
+              const act = fastPlayAction(
+                sum, aces > 0, isPair, h.cards[0], d1, curTC,
+                h.cards.length === 2 && !h.fromAce,
+                isPair && hands.length < 2 && !h.fromAce
+              );
+              if(act === 'S') break;
+              if(act === 'P'){
+                const cA = h.cards[0], cB = h.cards[1];
+                const isA = cA === 1;
+                h.cards = [cA, draw()];
+                h.isSplit = true; h.fromAce = isA;
+                hands.push({cards:[cB, draw()], bet:stake, isSplit:true, fromAce:isA});
+                totalWagered += stake;
+                if(isA) break;
+                continue;
+              }
+              if(act === 'D'){
+                totalWagered += h.bet;
+                h.bet *= 2;
+                h.cards.push(draw());
+                break;
+              }
+              h.cards.push(draw());
+            }
+          }
+
+          const handSums = hands.map(h => {
+            let sum = 0, aces = 0;
+            for(const c of h.cards){
+              if(c === 1){ sum += 11; aces++; } else if(c === 0) sum += 10; else sum += c;
+            }
+            while(sum > 21 && aces > 0){ sum -= 10; aces--; }
+            return sum;
+          });
+
+          let dSum = 0, dAces = 0;
+          const dCards = [d1, d2];
+          const calcD = () => {
+            dSum = 0; dAces = 0;
+            for(const c of dCards){ if(c===1){dSum+=11;dAces++;} else if(c===0) dSum+=10; else dSum+=c; }
+            while(dSum > 21 && dAces > 0){ dSum -= 10; dAces--; }
+          };
+          calcD();
+          if(handSums.some(s => s <= 21)){
+            while(dSum < 17){
+              dCards.push(draw());
+              calcD();
+            }
+          }
+          for(let hi = 0; hi < hands.length; hi++){
+            const ps = handSums[hi], hb = hands[hi].bet;
+            if(ps > 21) roundNet -= hb;
+            else if(dSum > 21 || ps > dSum) roundNet += hb;
+            else if(ps < dSum) roundNet -= hb;
+          }
+        }
+        shoeNet += roundNet;
+      }
+
+      if(shoeHit15) shoesHit15++;
+      totalProfit += shoeNet;
+      bank += shoeNet;
+      if(bank > peak) peak = bank;
+      if(peak - bank > maxDD) maxDD = peak - bank;
+      if(bank <= 0) busted = true;
+      paths[pIdx].push(bank);
+      avgCurve[sh + 1] += bank;
+    }
+    maxDrawdownSum += maxDD;
+    if(busted) busts++;
+  }
+
+  for(let k = 1; k <= shoesPerPlayer; k++) avgCurve[k] /= numPlayers;
+
+  return {
+    numShoes, shoesPerPlayer, numPlayers, startBankroll, unitPeso,
+    shoesHit15Pct: shoesHit15 / numShoes,
+    roundsPosPct: totalRounds > 0 ? posRounds / totalRounds : 0,
+    betRoundsPct: totalRounds > 0 ? betRounds / totalRounds : 0,
+    totalRounds, betRounds, totalWagered, totalProfit,
+    avgProfitPerPlayer: totalProfit / numPlayers,
+    roi: totalWagered > 0 ? totalProfit / totalWagered : 0,
+    avgMaxDrawdown: maxDrawdownSum / numPlayers,
+    sampleBustRate: busts / numPlayers,
+    paths, avgCurve
+  };
+}
+
+/* ============================================================================
+   3. TAB 1: GUIDED 8-LESSON CURRICULUM & LESSON INTERACTIVE WIDGETS
+   ============================================================================ */
+const LESSONS = [
+  {
+    id:'L1', short:'Why It Works', title:'Lesson 1: Why Counting Works (And the #1 Beginner Trap)',
+    quizzes:[
+      {
+        q:'After 10 low cards (2–6) are dealt onto the table, the Running Count is +10. What does +10 actually tell you?',
+        opts:[
+          'There are 10 extra low cards left inside the un-dealt shoe',
+          'Low cards have ALREADY left, so the remaining shoe has extra 10s & Aces',
+          'The next 10 cards are guaranteed to be face cards'
+        ],
+        ans: 1,
+        exp:'Exact opposite of the #1 beginner trap! You count what LEFT the table. Adding +1 for small cards leaving means high cards (10s & Aces) are concentrated in what REMAINS.'
+      },
+      {
+        q:'Why do leftover 10s and Aces help YOU more than the dealer, even though you draw from the same shoe?',
+        opts:[
+          'Because Blackjacks pay you 3:2, you can Double Down, and the dealer must hit 12–16',
+          'Because the dealer is not allowed to get Blackjack when the count is positive',
+          'Because 10s count as 0 for the dealer'
+        ],
+        ans: 0,
+        exp:'Bingo! Both get more Blackjacks, but yours pays 3:2 while theirs takes 1:1. Plus you can Double on 10/11 and Stand on 12–16 while the dealer is forced to hit into bust cards.'
+      }
+    ]
+  },
+  {
+    id:'L2', short:'Basic Strategy', title:'Lesson 2: Step 0 — Basic Strategy (Your Shield Before Your Sword)',
+    quizzes:[
+      {
+        q:'Why must a beginner learn Basic Strategy BEFORE trying to count cards?',
+        opts:[
+          'Counting only adds ~0.5% to +2% edge; sloppy plays lose 2%–4% and erase all counting profit',
+          'Casinos require you to pass a Basic Strategy test before sitting down',
+          'Basic Strategy makes the Running Count stay positive'
+        ],
+        ans: 0,
+        exp:'Your tracker’s -0.54% Playtech house edge ASSUMES perfect Basic Strategy. Playing by "gut feeling" leaks far more money than card counting can win back.'
+      },
+      {
+        q:'Using the "Rule of 10" (assume the dealer’s hidden card is a 10), why do you STAND on Hard 15 vs Dealer 6?',
+        opts:[
+          'Because 15 beats a dealer 16',
+          'Because Dealer 6 + hidden 10 = 16, forcing the dealer to hit and often bust',
+          'Because Basic Strategy never hits 15'
+        ],
+        ans: 1,
+        exp:'Dealer showing 2–6 is in the "Bust Zone" (likely 12–16 underneath). You stand on your stiff 12–16 and let the dealer take the bust risk!'
+      }
+    ]
+  },
+  {
+    id:'L3', short:'Hi-Lo Values', title:'Lesson 3: The Hi-Lo System (+1, 0, -1 Buckets)',
+    quizzes:[
+      {
+        q:'Which card ranks get a 0 (neutral — completely ignore them) in Hi-Lo?',
+        opts:['2, 3, 4','7, 8, 9','Ace and 10'],
+        ans: 1,
+        exp:'7, 8, and 9 are neutral (0). Looking at your tracker’s Effect of Removal table, 8 is literally +0.01% per deck — virtually zero impact!'
+      },
+      {
+        q:'If you count through a single complete 52-card deck from start to finish in Hi-Lo, what number MUST you end on?',
+        opts:['+4','0','-4'],
+        ans: 1,
+        exp:'Hi-Lo is a balanced system: twenty +1 cards (2–6) and twenty -1 cards (10,J,Q,K,A) cancel to 0! Ending on 0 proves you didn’t miss a card.'
+      }
+    ]
+  },
+  {
+    id:'L4', short:'Pair Cancellation', title:'Lesson 4: Running Count & Pair Cancellation',
+    quizzes:[
+      {
+        q:'A player box is dealt K♠ + 5♥, and the dealer flips 8♣. What is the net count change for all 3 cards?',
+        opts:['+1','0','-1'],
+        ans: 1,
+        exp:'K (-1) and 5 (+1) cancel each other to 0! And 8 is neutral (0). Total change = 0 without doing any mental addition!'
+      },
+      {
+        q:'At a live table, when is the easiest moment to read players’ initial 2 cards?',
+        opts:[
+          'Wait until both cards land in front of each seat so you can cancel +1/-1 pairs at a glance',
+          'Shout each card out loud one by one as it leaves the shoe',
+          'Only count your own hand and ignore everyone else'
+        ],
+        ans: 0,
+        exp:'Scanning 2-card hands lets your eyes instantly delete High+Low pairs and neutral 7–9s, leaving only 1 or 2 leftover cards per table to add!'
+      }
+    ]
+  },
+  {
+    id:'L5', short:'True Count', title:'Lesson 5: True Count & Deck Estimation (Dilution Math)',
+    quizzes:[
+      {
+        q:'Suppose Running Count = +8. Which situation gives you the HIGHER player advantage?',
+        opts:[
+          'RC = +8 with 6 decks remaining in the shoe',
+          'RC = +8 with 2 decks remaining in the shoe',
+          'Both have the exact same advantage because RC is +8'
+        ],
+        ans: 1,
+        exp:'True Count = RC ÷ Remaining Decks! +8 ÷ 6 = +1.33 (barely positive), whereas +8 ÷ 2 = +4.00 (massive +1.5% edge!).'
+      },
+      {
+        q:'In an 8-deck Playtech shoe with a ~50% cut card (4 decks dealt, 4 decks left), you estimate 2.5 decks in the discard tray. How many decks remain?',
+        opts:['2.5 decks','5.5 decks','4.0 decks'],
+        ans: 1,
+        exp:'Always subtract from the starting shoe size! 8.0 total - 2.5 dealt = 5.5 decks remaining. That’s why you divide RC by 5.5!'
+      }
+    ]
+  },
+  {
+    id:'L6', short:'Bet Spread & Wong', title:'Lesson 6: Bet Spread, Wonging & Bankroll Reality',
+    quizzes:[
+      {
+        q:'Where does ~80%–85% of a card counter’s long-term profit actually come from?',
+        opts:[
+          'Memorizing all 18 playing deviations (Hit/Stand flips)',
+          'Betting MORE when TC is positive and betting table min (or sitting out ₱0) when TC is negative',
+          'Hitting winning streaks by doubling bets after every loss'
+        ],
+        ans: 1,
+        exp:'Bet sizing (and Wonging out of negative counts) drives 80–85% of the win rate! Deviations only add the final ~15–20% polish.'
+      },
+      {
+        q:'Why does a ₱1,000 bankroll with ₱50 units (20 units) carry a high Risk of Ruin even if you only bet on +EV counts?',
+        opts:[
+          'Because short-term Blackjack variance regularly swings ±25 to ±50 units even with a +1.5% edge',
+          'Because card counting doesn’t work with ₱50 chips',
+          'Because Playtech disables Blackjacks if you bet ₱50'
+        ],
+        ans: 0,
+        exp:'A +1.5% edge means you STILL lose ~48% of individual hands! With only 20 units, normal bad luck can wipe out the roll before long-run math kicks in. Serious spreads target 100+ units.'
+      }
+    ]
+  },
+  {
+    id:'L7', short:'Deviations', title:'Lesson 7: Deviations & Insurance (Illustrious 18)',
+    quizzes:[
+      {
+        q:'What makes Insurance (which pays 2:1) flip from a terrible sucker bet into a +EV play at TC ≥ +3?',
+        opts:[
+          'The dealer starts showing more Aces',
+          'The proportion of remaining 10-value cards crosses above 1/3 (33.33%)',
+          'Insurance pays 3:1 when the count is positive'
+        ],
+        ans: 1,
+        exp:'At 2:1 odds, you win +2 units when the dealer has a 10 underneath and lose -1 unit otherwise. Break-even is exactly 1/3 = 33.33% tens remaining!'
+      },
+      {
+        q:'As a complete beginner, which TWO deviations should you learn first before touching the rest of the Illustrious 18?',
+        opts:[
+          'Split 10s vs 5 and Split 10s vs 6',
+          'Insurance at TC ≥ +3, and Stand on Hard 16 vs 10 at TC ≥ 0',
+          'Double 8 vs 4 and Hit 13 vs 2'
+        ],
+        ans: 1,
+        exp:'Insurance (+3) and 16 vs 10 (0) happen frequently and capture over half of all deviation gain — without risking crazy heat like splitting 10s!'
+      }
+    ]
+  },
+  {
+    id:'L8', short:'Real-Table Traps', title:'Lesson 8: Side Bets, 50% Penetration & Your Tracker Workflow',
+    quizzes:[
+      {
+        q:'In an 8-deck Playtech shoe cut at 50%, roughly what percentage of total rounds ever reach TC ≥ +1.5?',
+        opts:['About 75% of rounds','About 11.5% of rounds (~43% of shoes peak that high)','About 50% of rounds'],
+        ans: 1,
+        exp:'Matching your tracker’s 50k simulation: only ~42.8% of shoes ever hit +1.5, and just ~11.5% of total rounds are in the +EV zone. Patience IS the skill!'
+      },
+      {
+        q:'If the shoe is hot (TC = +3), should you add a ₱50 "Top 3" or "Buster" side bet?',
+        opts:[
+          'Yes, positive TC makes every side bet +EV',
+          'No! Playtech side bets start at -3.7% to -9.0% house edge and drain your main-game profits',
+          'Only if you already lost the previous hand'
+        ],
+        ans: 1,
+        exp:'Side bets carry massive house edges (-3.7% to -9.0%). One ₱50 side bet can erase the entire expected profit of a ₱400 main hand!'
+      }
+    ]
+  }
+];
+
+// Lesson interactive local state
+let L1Rem = [128, 32, 32, 32, 32, 32, 32, 32, 32, 32];
+let L2Hand = null, L2Feedback = null, L2Score = {ok:0, tot:0};
+let L3Deck = [], L3Card = null, L3Feedback = null, L3Stats = {ok:0, tot:0, times:[], shownAt:0};
+let L4Cards = [], L4Selected = null, L4Cancelled = new Set(), L4Feedback = null, L4Score = {ok:0, tot:0};
+let L5SimRC = 8, L5SimDealt = 208, L5Quiz = null, L5Feedback = null;
+let L6TC = 2.0, L6Mode = 'wong', L6BankUnits = 40;
+let L7DevId = '16v10', L7TC = 1.0;
+let L8SideBetUnits = 1;
+
+function initLessonWidgets(){
+  if(!L2Hand) nextL2Hand();
+  if(!L3Card) nextL3Card();
+  if(!L4Cards.length) nextL4Round();
+  if(!L5Quiz) nextL5Quiz();
+}
+
+function nextL2Hand(){
+  const scenarios = [
+    {p:[10,6], d:6, ans:'S', tip:'Rule of 10: Dealer 6 is likely 16 underneath (Bust Zone!). Stand and let dealer bust.'},
+    {p:[10,6], d:9, ans:'H', tip:'Rule of 10: Dealer 9 is likely 19. Standing on 16 loses almost every time — Hit to chase 17+!'},
+    {p:[10,2], d:3, ans:'H', tip:'Classic exception! Hard 12 vs 2 or 3: only 4 ranks bust you (10s), while Dealer 3 isn’t weak enough yet — Hit!'},
+    {p:[10,2], d:4, ans:'S', tip:'Hard 12 vs 4–6: Dealer 4–6 busts ~40–42% of the time. Stand safely!'},
+    {p:[6,5], d:10, ans:'D', tip:'Hard 11 vs 10 (Playtech OBO/peek): 30.8% chance of drawing a 10 for 21! Double Down!'},
+    {p:[6,5], d:1, ans:'H', tip:'In 8-Deck S17, Basic Strategy HITS 11 vs Ace (until TC ≥ +1, when you Double!).'},
+    {p:[5,4], d:5, ans:'D', tip:'Hard 9 vs 3–6: Dealer is in the Bust Zone and a 10 gives you 19. Double Down!'},
+    {p:[8,8], d:10, ans:'P', tip:'ALWAYS split 8,8 and A,A! A single 16 is miserable (-50% EV), while two hands starting with 8 average much better.'},
+    {p:[9,9], d:7, ans:'S', tip:'Tricky one! 9,9 = 18 already beats a Dealer 17 (if dealer has a 10 under 7). Stand on 18!'},
+    {p:[1,7], d:4, ans:'D', tip:'Soft 18 (A,7) vs 3–6: You CANNOT bust on one card, and dealer 4 is weak. Double to press the advantage!'},
+    {p:[1,7], d:9, ans:'H', tip:'Soft 18 vs 9, 10, or Ace: 18 is an underdog against a likely 19–20, and you can’t bust — Hit!'},
+    {p:[5,5], d:6, ans:'D', tip:'NEVER split 5,5! 5+5 = 10 is one of the strongest starting totals in Blackjack. Double vs 2–9!'},
+    {p:[10,10], d:6, ans:'S', tip:'NEVER split 10,10 in Basic Strategy! 20 wins ~85% of the time — don’t break a monster hand.'}
+  ];
+  const pick = scenarios[Math.floor(Math.random() * scenarios.length)];
+  const pCards = pick.p.map(r => makeCardObj(r === 10 ? 0 : r));
+  const dCard = makeCardObj(pick.d === 10 ? 0 : pick.d);
+  L2Hand = { ...pick, pCards, dCard };
+  L2Feedback = null;
+}
+
+function nextL3Card(){
+  if(!L3Deck.length) L3Deck = createShuffledShoe(1);
+  L3Card = L3Deck.pop();
+  L3Feedback = null;
+  L3Stats.shownAt = performance.now();
+}
+
+function nextL4Round(){
+  const n = 6; // 3 player boxes (2 cards each) or 2 boxes + dealer
+  const deck = createShuffledShoe(2);
+  L4Cards = deck.slice(0, n);
+  L4Selected = null;
+  L4Cancelled = new Set();
+  L4Feedback = null;
+}
+
+function nextL5Quiz(){
+  const remDecksChoices = [1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0];
+  const remDecks = remDecksChoices[Math.floor(Math.random() * remDecksChoices.length)];
+  const dealtCards = Math.round((8 - remDecks) * 52);
+  const rc = Math.floor(Math.random() * 19) - 4; // -4 to +14
+  L5Quiz = { rc, remDecks, dealtCards, exactTC: rc / remDecks };
+  L5Feedback = null;
+}
+
+function renderLearn(){
+  initLessonWidgets();
+  const el = document.getElementById('tab-learn');
+  const curIdx = Math.max(0, Math.min(LESSONS.length - 1, S.lessonIdx || 0));
+  const L = LESSONS[curIdx];
+
+  const stepperHTML = `
+    <div class="lesson-stepper">
+      ${LESSONS.map((les, i) => {
+        const done = S.completedLessons.includes(les.id);
+        const cls = `${i === curIdx ? 'active' : ''} ${done ? 'done' : ''}`;
+        return `
+          <button class="l-step ${cls}" data-go-lesson="${i}">
+            <span class="num"><span>L${i+1}</span><span>${done ? '✓' : ''}</span></span>
+            <span class="ttl">${les.short}</span>
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  let bodyHTML = '';
+  if(L.id === 'L1') bodyHTML = renderLesson1();
+  else if(L.id === 'L2') bodyHTML = renderLesson2();
+  else if(L.id === 'L3') bodyHTML = renderLesson3();
+  else if(L.id === 'L4') bodyHTML = renderLesson4();
+  else if(L.id === 'L5') bodyHTML = renderLesson5();
+  else if(L.id === 'L6') bodyHTML = renderLesson6();
+  else if(L.id === 'L7') bodyHTML = renderLesson7();
+  else bodyHTML = renderLesson8();
+
+  const quizHTML = renderLessonQuiz(L);
+
+  const navFooter = `
+    <div class="row" style="margin-top:16px">
+      <button class="btn" id="prevLessonBtn" ${curIdx === 0 ? 'disabled' : ''}>← Previous Lesson</button>
+      <span class="sp"></span>
+      ${curIdx < LESSONS.length - 1
+        ? `<button class="btn primary" id="nextLessonBtn">Next: ${LESSONS[curIdx+1].short} →</button>`
+        : `<button class="btn good" id="goDrillsFromL8">⚡ Ready! Open Speed Drills →</button>`}
+    </div>
+  `;
+
+  el.innerHTML = `
+    ${stepperHTML}
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <h2 style="margin:0;font-size:18px;color:#fff">${L.title}</h2>
+        <span class="sp"></span>
+        ${S.completedLessons.includes(L.id)
+          ? '<span class="pill green">✓ Lesson Completed</span>'
+          : '<span class="pill amber">Answer Check Below to Complete</span>'}
+      </div>
+      ${bodyHTML}
+      ${quizHTML}
+      ${navFooter}
+    </div>
+  `;
+
+  wireLessonEvents(L, curIdx);
+  if(L.id === 'L7') drawL7CrossoverChart();
+}
+
+function renderLessonQuiz(L){
+  const doneCount = L.quizzes.filter((_, qi) => S.quizAnswers[`${L.id}Q${qi}`] === true).length;
+  return `
+    <div class="quiz-box">
+      <div class="row" style="margin-bottom:8px">
+        <h3 style="margin:0">✅ Quick Understanding Check (${doneCount}/${L.quizzes.length})</h3>
+        <span class="sp"></span>
+        <span class="small mut">Get both right to mark Lesson ${L.id.slice(1)} mastered</span>
+      </div>
+      ${L.quizzes.map((qz, qi) => {
+        const key = `${L.id}Q${qi}`;
+        const picked = S.quizAnswers[key + '_pick'];
+        const isCorrect = S.quizAnswers[key] === true;
+        return `
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">
+            <div style="font-weight:700;margin-bottom:6px">${qi + 1}. ${qz.q}</div>
+            ${qz.opts.map((opt, oi) => {
+              let cls = '';
+              if(picked !== undefined){
+                if(oi === qz.ans) cls = 'correct';
+                else if(oi === picked) cls = 'wrong';
+              }
+              return `<button class="q-opt ${cls}" data-quiz-id="${L.id}" data-qi="${qi}" data-oi="${oi}">${opt}</button>`;
+            }).join('')}
+            ${picked !== undefined ? `
+              <div class="small ${isCorrect ? 'pos' : 'warn'}" style="margin-top:5px">
+                ${isCorrect ? '✓ Correct! ' : '✕ Not quite — '} ${qz.exp}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderLesson1(){
+  const m = computeShoeMetrics(L1Rem, 8, 50, TABLE_SPECS.allbets);
+  const tenPctBar = Math.min(100, Math.max(0, (m.tenProb - 0.20) / 0.25 * 100));
+  const insThreshBar = (1/3 - 0.20) / 0.25 * 100;
+  return `
+    <p>In Roulette or Coin Flips, every spin resets to 0 memory. In <strong>Blackjack</strong>, dealt cards sit in the discard tray until the shuffle — so the remaining shoe’s card mix shifts every single round.</p>
+
+    <div class="callout trap">
+      <div class="callout-title">⚠️ Busting the #1 Beginner Confusion</div>
+      <div>When you see a <strong>5♠</strong> land on the table, you add <strong>+1</strong>. Beginners often think: <em>"Wait — does +1 mean there are more 5s left?"</em> <strong>NO!</strong> You are counting what <strong>LEFT the shoe</strong>. Adding +1 means small cards are GONE — so what REMAINS in the shoe has extra 10s &amp; Aces!</div>
+    </div>
+
+    <div class="grid g4" style="margin:12px 0">
+      <div class="card-sub"><strong class="pos">1. Blackjacks Pay 3:2</strong><div class="small mut">More 10s + Aces = more naturals. Yours pays 1.5×; dealer’s only takes 1×.</div></div>
+      <div class="card-sub"><strong class="cyan">2. You Can Double</strong><div class="small mut">On 10 or 11, you double your bet hoping for a 10. The dealer never gets to double.</div></div>
+      <div class="card-sub"><strong class="warn">3. Dealer Must Hit 16</strong><div class="small mut">You can Stand on 12–16 while a 10-rich shoe forces the dealer to bust more often.</div></div>
+      <div class="card-sub"><strong class="purp">4. Insurance Flips +EV</strong><div class="small mut">At 2:1 odds, if remaining 10s pass 33.3%, Insurance turns profitable!</div></div>
+    </div>
+
+    <div class="card-sub" style="border-color:#33415c">
+      <div class="row" style="margin-bottom:8px">
+        <strong style="color:#93c5fd">🧪 Interactive Lab: Remove Cards From a Fresh 8-Deck Shoe</strong>
+        <span class="sp"></span>
+        <button class="btn xs" id="l1Reset">↺ Reset 416 Cards</button>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <button class="btn sm good" data-l1-rem="5">Remove four 5s (+4 RC)</button>
+        <button class="btn sm good" data-l1-rem="low">Remove 2–6 (five cards, +5 RC)</button>
+        <button class="btn sm danger" data-l1-rem="10">Remove four 10s (-4 RC)</button>
+        <button class="btn sm danger" data-l1-rem="1">Remove two Aces (-2 RC)</button>
+      </div>
+      <div class="grid g4">
+        <div class="stat"><div class="k">Running / True Count</div><div class="v ${m.tc>0.5?'pos':m.tc<-0.5?'neg':''}">${m.rc>=0?'+':''}${m.rc} / TC ${m.tc>=0?'+':''}${m.tc.toFixed(2)}</div><div class="small mut">${m.totalRem} of 416 left</div></div>
+        <div class="stat"><div class="k">10-Cards Remaining</div><div class="v ${m.tenProb>1/3?'pos':''}">${pct(m.tenProb,1)}</div><div class="small mut">Fresh: 30.8% · Ins +EV &gt; 33.3%</div></div>
+        <div class="stat"><div class="k">Dealer Bust (vs 4,5,6)</div><div class="v">${pct(m.stiffBustAvg,1)}</div><div class="small mut">Natural BJ prob: ${pct(m.bjProb,2)}</div></div>
+        <div class="stat"><div class="k">Your Live Edge (EoR)</div><div class="v ${m.eorEdge>=0?'pos':'neg'}">${pctSign(m.eorEdge,2)}</div><div class="small mut">Fresh baseline: -0.54%</div></div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="row small mut" style="margin-bottom:4px"><span>10-Card Concentration Meter (20% → 45%)</span><span class="sp"></span><span class="warn">Amber line = 33.3% Insurance Break-Even</span></div>
+        <div class="meter"><i style="width:${tenPctBar.toFixed(1)}%;background:${m.tenProb>1/3?'var(--green)':'var(--blue)'}"></i><span class="marker" style="left:${insThreshBar.toFixed(1)}%"></span></div>
+      </div>
+    </div>
+
+    <div class="callout bridge">
+      <div class="callout-title">🔗 Inside Your Blackjack Tracker</div>
+      <div class="small">When you tap card buttons in <code>blackjack-tracker</code>, <code>buildShoeState()</code> subtracts from <code>rem[0..9]</code> and applies Peter Griffin’s Effect of Removal (<code>EOR_1DECK_PCT</code>). Notice why removing <strong>5s</strong> jumped your edge fastest: a 5 is worth <strong>+0.69% per deck</strong>, while removing an <strong>Ace</strong> hurts <strong>-0.59%</strong> and a <strong>10</strong> hurts <strong>-0.51%</strong>!</div>
+    </div>
+  `;
+}
+
+function renderLesson2(){
+  const h = L2Hand;
+  const pEval = evalHand(h.pCards.map(c => c.rank));
+  const labelSum = pEval.isPair ? `Pair of ${h.pCards[0].face}s` : (pEval.isSoft ? `Soft ${pEval.sum}` : `Hard ${pEval.sum}`);
+  return `
+    <p>Imagine card counting gives you a <strong>+1.0% edge</strong> on a hot shoe. If you play Basic Strategy wrong — like standing on Hard 15 vs 10 in negative counts, or splitting 10s — you give the casino back <strong>-2.5% to -4.0%</strong>. You’d be counting hard just to lose slower!</p>
+
+    <div class="grid g2" style="margin:10px 0">
+      <div class="card-sub">
+        <h3 style="margin-top:0">🧠 The 4 Mental Rules (No 270-Cell Memorizing Yet!)</h3>
+        <ol class="small" style="padding-left:18px;margin:0;line-height:1.65">
+          <li><strong>Assume Dealer’s Hidden Card is a 10:</strong> 10/J/Q/K make up 30.8% of the deck — the single most likely card! So Dealer <code>2–6</code> = likely <code>12–16</code> (danger!). Dealer <code>7–A</code> = likely <code>17–21</code> (strong!).</li>
+          <li><strong>Dealer 2–6 ("Bust Zone"):</strong> Stand on Hard <code>12–16</code> (exception: Hit <code>12 vs 2,3</code>!). Double aggressively on <code>9, 10, 11</code> and Soft hands.</li>
+          <li><strong>Dealer 7–A ("Chase 17+"):</strong> Hit Hard <code>12–16</code> until <code>17+</code>. Only Double <code>11</code> (vs <code>7–10</code>) and <code>10</code> (vs <code>7–9</code>).</li>
+          <li><strong>Pairs Golden Rule:</strong> Always split <code>A,A</code> &amp; <code>8,8</code>. Never split <code>10,10</code> or <code>5,5</code>. Split <code>2s, 3s, 6s, 7s</code> vs weak dealers!</li>
+        </ol>
+      </div>
+      <div class="felt">
+        <div class="row" style="margin-bottom:8px">
+          <strong style="color:#bbf7d0">🎮 Test Your Instinct (${L2Score.ok}/${L2Score.tot})</strong>
+          <span class="sp"></span>
+          <button class="btn xs" id="l2NextBtn">New Hand →</button>
+        </div>
+        <div class="split-even" style="text-align:center">
+          <div>
+            <div class="small mut" style="margin-bottom:4px">DEALER UPCARD</div>
+            <div class="cards-row">${renderCardHTML(h.dCard, {size:'sm', showWheels:false})}${renderCardHTML(null, {size:'sm', faceDown:true, showWheels:false})}</div>
+          </div>
+          <div>
+            <div class="small mut" style="margin-bottom:4px">YOUR HAND (${labelSum})</div>
+            <div class="cards-row">${h.pCards.map(c => renderCardHTML(c, {size:'sm', showWheels:false})).join('')}</div>
+          </div>
+        </div>
+        <div class="row" style="justify-content:center;margin-top:12px">
+          <button class="btn sm good" data-l2-ans="S" ${L2Feedback?'disabled':''}>STAND</button>
+          <button class="btn sm amber" data-l2-ans="H" ${L2Feedback?'disabled':''}>HIT</button>
+          <button class="btn sm primary" data-l2-ans="D" ${L2Feedback?'disabled':''}>DOUBLE</button>
+          <button class="btn sm purple" data-l2-ans="P" ${L2Feedback?'disabled':''}>SPLIT</button>
+        </div>
+        ${L2Feedback ? `
+          <div class="callout ${L2Feedback.ok?'good':'trap'}" style="margin-top:10px;margin-bottom:0">
+            <strong>${L2Feedback.ok ? '✓ Spot on!' : '✕ Best Basic Strategy play is ' + ({S:'STAND',H:'HIT',D:'DOUBLE',P:'SPLIT'}[h.ans])}</strong>
+            <div class="small" style="margin-top:3px">${h.tip}</div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+
+    <div class="callout bridge">
+      <div class="callout-title">🔗 Inside Your Blackjack Tracker</div>
+      <div class="small">Playtech All Bets has a certified <strong>99.46% RTP (-0.54% base edge)</strong> because of S17, DAS, and 10-Card Charlie — <em>only</em> when you follow Basic Strategy. Tab 2 of your tracker solves the live shoe dynamically, highlighting in gold (★) only the rare spots where the count flips Basic Strategy!</div>
+    </div>
+  `;
+}
+
+function renderLesson3(){
+  if(L3Stats.tot === 0) L3Stats.shownAt = performance.now();
+  const sampleLow = [2,3,4,5,6].map(r => makeCardObj(r, RANK_LABEL[r], SUITS[r%4]));
+  const sampleNeu = [7,8,9].map(r => makeCardObj(r, RANK_LABEL[r], SUITS[r%4]));
+  const sampleHi  = [{r:0,f:'10'},{r:0,f:'J'},{r:0,f:'Q'},{r:0,f:'K'},{r:1,f:'A'}].map((x,i) => makeCardObj(x.r, x.f, SUITS[i%4]));
+  const avgMs = L3Stats.times.length ? Math.round(L3Stats.times.reduce((a,b)=>a+b,0)/L3Stats.times.length) : 0;
+
+  return `
+    <p>Forget tracking individual cards. Hi-Lo turns every card into one of just <strong>three numbers</strong>: <code>+1</code>, <code>0</code>, or <code>-1</code>.</p>
+
+    <div class="grid g3" style="margin:12px 0">
+      <div class="card-sub" style="border-color:#166534;background:#0b2014">
+        <div class="row"><strong class="pos">LOW CARDS → +1</strong><span class="sp"></span><span class="pill green">20 per deck</span></div>
+        <div class="small mut" style="margin:4px 0 8px">Good when they LEAVE! Add 1.</div>
+        <div class="cards-row" style="gap:5px;min-height:auto">${sampleLow.map(c => renderCardHTML(c, {size:'sm', showWheels:true})).join('')}</div>
+      </div>
+      <div class="card-sub" style="border-color:#475569">
+        <div class="row"><strong>NEUTRAL → 0</strong><span class="sp"></span><span class="pill">12 per deck</span></div>
+        <div class="small mut" style="margin:4px 0 8px">Ignore completely! Skip them.</div>
+        <div class="cards-row" style="gap:5px;min-height:auto">${sampleNeu.map(c => renderCardHTML(c, {size:'sm', showWheels:true})).join('')}</div>
+      </div>
+      <div class="card-sub" style="border-color:#7f1d1d;background:#241013">
+        <div class="row"><strong class="neg">HIGH CARDS → -1</strong><span class="sp"></span><span class="pill red">20 per deck</span></div>
+        <div class="small mut" style="margin:4px 0 8px">Bad when they LEAVE! Subtract 1.</div>
+        <div class="cards-row" style="gap:5px;min-height:auto">${sampleHi.map(c => renderCardHTML(c, {size:'sm', showWheels:true})).join('')}</div>
+      </div>
+    </div>
+
+    <div class="felt" style="margin:12px 0">
+      <div class="row" style="margin-bottom:8px">
+        <strong style="color:#bbf7d0">🃏 Quick Tag Reflex Mini-Trainer</strong>
+        <span class="sp"></span>
+        <span class="pill">Accuracy: ${L3Stats.ok}/${L3Stats.tot}</span>
+        <span class="pill blue">Avg Speed: ${avgMs ? avgMs + 'ms' : '—'}</span>
+      </div>
+      <div class="cards-row" style="min-height:140px">
+        ${renderCardHTML(L3Card, {size:'lg', showWheels:false, animate:true})}
+      </div>
+      <div class="row" style="justify-content:center;margin-top:12px">
+        <button class="btn good" data-l3-tag="1" style="min-width:110px">+1 (2–6)</button>
+        <button class="btn" data-l3-tag="0" style="min-width:110px">0 (7–9)</button>
+        <button class="btn danger" data-l3-tag="-1" style="min-width:110px">-1 (10–A)</button>
+      </div>
+      ${L3Feedback ? `<div style="text-align:center;margin-top:8px" class="small ${L3Feedback.ok?'pos':'neg'}">${L3Feedback.msg}</div>` : ''}
+    </div>
+
+    <div class="callout bridge">
+      <div class="callout-title">🔗 Inside Your Blackjack Tracker</div>
+      <div class="small">Look at the numpad in <code>blackjack-tracker</code>: the buttons <strong>2–6 are colored Green</strong> (<code>+1</code>), <strong>7–9 are Slate</strong> (<code>0</code>), and <strong>A / 10 are Red</strong> (<code>-1</code>). That matches <code>HILO_TAG</code> exact-to-the-code!</div>
+    </div>
+  `;
+}
+
+function renderLesson4(){
+  const netSum = L4Cards.reduce((acc, c) => acc + c.tag, 0);
+  const cancelledCount = L4Cancelled.size;
+  const remainingCards = L4Cards.filter((_, i) => !L4Cancelled.has(i));
+  return `
+    <p>Beginners count like this: <em>"King is -1... 5 is 0... 9 is 0... 4 is +1... Ace is 0..."</em> Your brain runs out of RAM in 10 seconds!</p>
+    <p><strong>Pro Secret — Pair Cancellation:</strong> A <code>+1</code> card and a <code>-1</code> card together equal <strong>ZERO</strong>. Train your eyes to erase matching pairs and neutral <code>7–9</code>s instantly — then only count the leftovers!</p>
+
+    <div class="felt" style="margin:12px 0">
+      <div class="row" style="margin-bottom:10px">
+        <strong style="color:#bbf7d0">✂️ Pair Cancellation Sandbox (${L4Score.ok}/${L4Score.tot} solved)</strong>
+        <span class="sp"></span>
+        <button class="btn xs" id="l4AutoCancelBtn">✨ Show Cancellation</button>
+        <button class="btn xs" id="l4NewBtn">Deal New Table →</button>
+      </div>
+      <div class="small mut" style="text-align:center;margin-bottom:10px">
+        Optional step: Click a <strong>+1</strong> card and a <strong>-1</strong> card to cancel them out (or click any <strong>7–9</strong> to dismiss it), then pick the total net count below!
+      </div>
+      <div class="cards-row" style="gap:14px">
+        ${L4Cards.map((c, idx) => renderCardHTML(c, {
+          clickable: !L4Cancelled.has(idx),
+          selected: L4Selected === idx,
+          cancelled: L4Cancelled.has(idx),
+          dataIdx: idx
+        })).join('')}
+      </div>
+      <div class="small mut" style="text-align:center;margin-top:8px">
+        ${cancelledCount > 0 ? `${cancelledCount} of ${L4Cards.length} cards cancelled · ${remainingCards.length} survivors left` : 'Tap cards above to cancel pairs, or solve straight away:'}
+      </div>
+      <div class="row" style="justify-content:center;margin-top:12px;gap:6px">
+        ${[-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6].map(v => `
+          <button class="btn sm" data-l4-guess="${v}">${v>0?'+'+v:v}</button>
+        `).join('')}
+      </div>
+      ${L4Feedback ? `
+        <div class="callout ${L4Feedback.ok?'good':'trap'}" style="margin-top:10px;margin-bottom:0">
+          <strong>${L4Feedback.msg}</strong>
+          <div class="small mut" style="margin-top:3px">Breakdown: ${L4Cards.map(c => `${c.face}${c.suit.sym}(${hiloText(c.tag)})`).join(' + ')} = <strong>${netSum>0?'+'+netSum:netSum}</strong></div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderLesson5(){
+  const remDecks = Math.max(0.5, (416 - L5SimDealt) / 52);
+  const playtechTC = L5SimRC / remDecks;
+  const vegasDealt = Math.round(312 * 0.72);
+  const vegasRemDecks = (312 - vegasDealt) / 52;
+  const vegasTC = L5SimRC / vegasRemDecks;
+
+  return `
+    <p>Suppose Running Count is <strong>+8</strong>. Is the shoe awesome? <strong>It depends on how many cards are still in the shoe!</strong> Dropping 8 scoops of sugar into 6 glasses of water is barely sweet (+1.3/glass). Dropping 8 scoops into 2 glasses is pure syrup (+4.0/glass)!</p>
+
+    <div class="callout info">
+      <div class="callout-title">📐 The True Count Formula</div>
+      <div><code>True Count (TC) = Running Count (RC) ÷ Remaining Decks</code></div>
+    </div>
+
+    <div class="split-2" style="margin:12px 0">
+      <div class="card-sub">
+        <h3 style="margin-top:0">🎛️ Interactive Dilution Explorer</h3>
+        <label class="small mut">Running Count (RC): <strong id="l5RcVal" style="color:#fff">${L5SimRC>=0?'+':''}${L5SimRC}</strong></label>
+        <input type="range" id="l5RcSlider" min="-12" max="16" step="1" value="${L5SimRC}">
+
+        <label class="small mut" style="margin-top:8px;display:block">Cards Dealt From 8-Deck Shoe: <strong id="l5DealtVal" style="color:#fff">${L5SimDealt} cards (${(L5SimDealt/52).toFixed(1)}D dealt · ${remDecks.toFixed(1)}D left)</strong></label>
+        <input type="range" id="l5DealtSlider" min="0" max="364" step="13" value="${L5SimDealt}">
+
+        <div class="grid g2" style="margin-top:12px" id="l5ReadoutGrid">
+          <div class="stat">
+            <div class="k">Your Shoe True Count</div>
+            <div class="v ${playtechTC>=1.5?'pos':playtechTC<0?'neg':''}">${playtechTC>=0?'+':''}${playtechTC.toFixed(2)}</div>
+            <div class="small mut">RC ${L5SimRC} ÷ ${remDecks.toFixed(2)} decks</div>
+          </div>
+          <div class="stat">
+            <div class="k">Same RC @ 1.7D Left (Vegas 75% Cut)</div>
+            <div class="v ${vegasTC>=1.5?'pos':vegasTC<0?'neg':''}">${vegasTC>=0?'+':''}${vegasTC.toFixed(2)}</div>
+            <div class="small mut">Why deeper cut = bigger TC swings!</div>
+          </div>
+        </div>
+        <div class="small mut" style="margin-top:8px">
+          <strong>Playtech All Bets Tip:</strong> Because Playtech puts the cut card around <strong>50% (4.0 decks left)</strong>, <code>remDecks</code> only shrinks from <code>8.0</code> down to <code>4.0</code>. That’s why your tracker checks rounds at <code>~6.4 cards/round</code> (roughly <strong>8 rounds = 1 deck dealt</strong>)!
+        </div>
+      </div>
+      <div id="l5RackWrap" style="display:flex;flex-direction:column;justify-content:center">
+        ${renderDiscardRackSVG(L5SimDealt, 416, 50)}
+      </div>
+    </div>
+
+    <div class="card-sub" style="border-color:#334155">
+      <div class="row" style="margin-bottom:8px">
+        <strong>👁️ Quick Mental Math Check (Round to nearest 0.5)</strong>
+        <span class="sp"></span>
+        <button class="btn xs" id="l5NewQuizBtn">New Scenario →</button>
+      </div>
+      <div class="split-2">
+        <div>${renderDiscardRackSVG(L5Quiz.dealtCards, 416, 50)}</div>
+        <div>
+          <div class="stat" style="margin-bottom:8px">
+            <div class="k">Suppose Running Count right now is:</div>
+            <div class="v">${L5Quiz.rc>=0?'+':''}${L5Quiz.rc}</div>
+            <div class="small mut">Look at the tray on the left: how many decks remain in the 8-deck shoe, and what is the True Count?</div>
+          </div>
+          <div class="row">
+            <label class="small">Est. Rem Decks:
+              <select id="l5GuessRem">
+                ${[1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5].map(v => `<option value="${v}" ${v===4?'selected':''}>${v.toFixed(1)} D</option>`).join('')}
+              </select>
+            </label>
+            <label class="small">Mental TC:
+              <input type="number" id="l5GuessTC" step="0.5" value="0" style="width:90px">
+            </label>
+            <button class="btn sm primary" id="l5CheckQuizBtn">Check Math</button>
+          </div>
+          ${L5Feedback ? `<div class="callout ${L5Feedback.ok?'good':'warn'}" style="margin-top:8px;margin-bottom:0"><strong>${L5Feedback.msg}</strong></div>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderLesson6(){
+  const unit = 50;
+  let units = 0;
+  if(L6Mode === 'playall'){
+    units = L6TC >= 4 ? 4 : L6TC >= 3 ? 3 : L6TC >= 2 ? 2 : 1;
+  } else {
+    units = L6TC >= 4 ? 4 : L6TC >= 3 ? 3 : L6TC >= 2 ? 2 : L6TC >= 1.5 ? 1 : 0;
+  }
+  const edge = -0.0054 + 0.0050 * L6TC;
+  const evPerHand = units * unit * edge;
+  const bankrollPeso = L6BankUnits * unit;
+  const rorLevel = L6BankUnits < 35 ? {cls:'trap', lbl:'DANGER — Very High Risk of Busting (under 35 units!)'}
+                 : L6BankUnits < 80 ? {cls:'warn', lbl:'MODERATE RISK — Tight Swing Cushion (35–80 units)'}
+                 : {cls:'good', lbl:'HEALTHY — Solid Advantage Cushion (80+ units)'};
+
+  return `
+    <p>Here is the biggest plot twist for beginners: <strong>80%–85% of your money comes from HOW MUCH YOU BET</strong>, not from changing how you play 16 vs 10!</p>
+
+    <div class="grid g2" style="margin:10px 0">
+      <div class="card-sub">
+        <strong class="pos">🟢 Pure Wonging (Back-Counting)</strong>
+        <div class="small mut" style="margin-top:4px">Named after Stanford Wong. On Playtech All Bets / Unlimited, you can sit at the table betting <strong>₱0</strong> while counting! You jump in ONLY when <code>TC ≥ +1.5</code> (where your edge crosses above 0%). Zero negative-EV bleeding!</div>
+      </div>
+      <div class="card-sub">
+        <strong class="warn">🛡️ Play-All (Bet Spread)</strong>
+        <div class="small mut" style="margin-top:4px">Required at physical 7-seat tables where you must bet every hand. You bet <code>1×</code> min on negative counts (paying -0.54% "rent" to see cards) and ramp <code>2× → 4×</code> on positive counts.</div>
+      </div>
+    </div>
+
+    <div class="card-sub" style="border-color:#33415c">
+      <div class="row" style="margin-bottom:8px">
+        <strong>🎛️ Interactive Bet Ramp &amp; Bankroll Simulator (₱50 Unit)</strong>
+        <span class="sp"></span>
+        <button class="btn xs ${L6Mode==='wong'?'on':''}" data-l6-mode="wong">Pure Wonging (₱0 Wait)</button>
+        <button class="btn xs ${L6Mode==='playall'?'on':''}" data-l6-mode="playall">Play-All (1–4× Spread)</button>
+      </div>
+      <label class="small mut">Simulated True Count: <strong id="l6TcLbl" style="color:#fff">${L6TC>=0?'+':''}${L6TC.toFixed(1)}</strong></label>
+      <input type="range" id="l6TcSlider" min="-3" max="5" step="0.5" value="${L6TC}">
+
+      <label class="small mut" style="margin-top:8px;display:block">Your Bankroll Size: <strong id="l6BkLbl" style="color:#fff">${L6BankUnits} units (${fmtPeso(bankrollPeso)})</strong> <span class="mut">(Your tracker’s default was 20 units = ₱1,000!)</span></label>
+      <input type="range" id="l6BkSlider" min="15" max="200" step="5" value="${L6BankUnits}">
+
+      <div class="grid g3" style="margin-top:10px" id="l6StatsGrid">
+        <div class="stat"><div class="k">Recommended Bet</div><div class="v ${units>0?'pos':'mut'}">${units===0 ? '₱0 (SIT OUT)' : fmtPeso(units*unit) + ` (${units}×)`}</div><div class="small mut">Mode: ${L6Mode==='wong'?'Pure Wonging':'Play-All'}</div></div>
+        <div class="stat"><div class="k">Approx. Player Edge</div><div class="v ${edge>=0?'pos':'neg'}">${pctSign(edge,2)}</div><div class="small mut">Base -0.54% + 0.50% × TC</div></div>
+        <div class="stat"><div class="k">Expected Profit / Hand</div><div class="v ${evPerHand>0?'pos':evPerHand<0?'neg':'mut'}">${units===0?'₱0.00':fmtSign(evPerHand,2)}</div><div class="small mut">On this 1 round</div></div>
+      </div>
+      <div class="callout ${rorLevel.cls}" id="l6RorBox" style="margin-bottom:0">
+        <strong>${rorLevel.lbl}</strong>
+        <div class="small" style="margin-top:3px">Even with a +1.5% edge, normal Blackjack swings frequently drop <strong>20–40 units</strong> in a bad week. With 20 units (₱1,000 at ₱50/hand), a single unlucky shoe can wipe you out. Aim for <strong>100+ units</strong> (or shrink your unit size)!</div>
+      </div>
+    </div>
+
+    <div class="callout bridge">
+      <div class="callout-title">🔗 Inside Your Blackjack Tracker</div>
+      <div class="small">This is the exact logic inside <code>computeBetVerdict()</code>: <code>Pure Wonging</code> keeps your bet at <code>₱0</code> until <code>TC ≥ +1.5</code>, ramps <code>1× / 2× / 3× / 4×</code> at <code>+1.5 / +2.0 / +3.0 / +4.0</code>, and tracks <code>Dead-Shoe Reach%</code> so you know when a negative shoe isn’t worth waiting around for!</div>
+    </div>
+  `;
+}
+
+function renderLesson7(){
+  const d = DEVIATION_CATALOG.find(x => x.id === L7DevId) || DEVIATION_CATALOG[1];
+  const { rem, totalRem } = buildSyntheticShoeAtTC(L7TC, 4);
+  let compareHTML = '';
+  if(d.isInsurance){
+    const tenProb = rem[0] / totalRem;
+    const insEv = 3 * tenProb - 1;
+    const take = tenProb > 1/3;
+    compareHTML = `
+      <div class="stat"><div class="k">Remaining 10s Density</div><div class="v ${take?'pos':'neg'}">${pct(tenProb,1)}</div><div class="small mut">Break-even = 33.3%</div></div>
+      <div class="stat"><div class="k">Insurance EV (2:1 payout)</div><div class="v ${insEv>0?'pos':'neg'}">${pctSign(insEv,2)}</div><div class="small mut">${take?'⚡ TAKE INSURANCE':'🛑 DECLINE INSURANCE'}</div></div>
+    `;
+  } else {
+    const dp = solveLiveHandDP(d.pCards, d.dUp, rem, totalRem, TABLE_SPECS.allbets);
+    const activeDev = d.dir === '>=' ? (L7TC >= d.indexTC) : (L7TC < d.indexTC);
+    const actMap = {S:'STAND', H:'HIT', D:'DOUBLE'};
+    compareHTML = `
+      <div class="stat"><div class="k">Basic Strategy (${actMap[d.basic]}) EV</div><div class="v">${pctSign(d.basic==='S'?dp.evStand:dp.evHit, 2)}</div><div class="small mut">Default play</div></div>
+      <div class="stat"><div class="k">Deviation (${actMap[d.dev]}) EV</div><div class="v ${activeDev?'pos':'mut'}">${pctSign(d.dev==='S'?dp.evStand:(d.dev==='H'?dp.evHit:dp.evDouble), 2)}</div><div class="small mut">${activeDev?'⚡ DEVIATION ACTIVE!':'Wait for TC ' + d.dir + ' ' + d.indexTC}</div></div>
+    `;
+  }
+
+  return `
+    <p>Once you master Basic Strategy, Hi-Lo, True Count, and your Bet Ramp, you unlock the final 15% of edge: <strong>Index Deviations</strong> (the famous <em>Illustrious 18</em>). These are specific hands where a high (or negative) True Count flips Basic Strategy!</p>
+
+    <div class="card-sub" style="border-color:#33415c">
+      <div class="row" style="margin-bottom:8px">
+        <strong>📈 Watch the Exact DP EV Lines Cross Live!</strong>
+        <span class="sp"></span>
+        <select id="l7DevSelect">
+          ${DEVIATION_CATALOG.map(x => `<option value="${x.id}" ${x.id===L7DevId?'selected':''}>${x.title} (TC ${x.dir} ${x.indexTC>=0?'+'+x.indexTC:x.indexTC})</option>`).join('')}
+        </select>
+      </div>
+      <label class="small mut">Slide True Count (-4 to +6): <strong id="l7TcVal" style="color:#fff">${L7TC>=0?'+':''}${L7TC.toFixed(1)}</strong></label>
+      <input type="range" id="l7TcSlider" min="-4" max="6" step="0.5" value="${L7TC}">
+      <div class="row small" style="margin:8px 0 4px;gap:12px">
+        <span style="color:#60a5fa;font-weight:700">━━ Basic Strategy (${d.basic})</span>
+        <span style="color:#22c55e;font-weight:700">━━ Deviation (${d.dev})</span>
+        <span style="color:#fbbf24;font-weight:700">┆ Index Crossover</span>
+      </div>
+      <div style="margin:4px 0 10px">
+        <canvas id="l7Chart" height="220"></canvas>
+      </div>
+      <div class="grid g2" id="l7StatsGrid">${compareHTML}</div>
+      <div class="callout info" style="margin-top:10px;margin-bottom:0">
+        <strong>Why it flips:</strong> <span class="small">${d.why}</span>
+      </div>
+    </div>
+
+    <div class="callout good">
+      <div class="callout-title">💡 Beginner Rule: Start With the "Fab 2"</div>
+      <div class="small">Don’t try to memorize 18 deviations on day one! Start with just <strong>Insurance at TC ≥ +3</strong> and <strong>Stand 16 vs 10 at TC ≥ 0</strong>. They occur often and deliver over half of all deviation profit!</div>
+    </div>
+  `;
+}
+
+function drawL7CrossoverChart(){
+  const canvas = document.getElementById('l7Chart');
+  if(!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  if(!rect.width) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = rect.width, H = 220;
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const d = DEVIATION_CATALOG.find(x => x.id === L7DevId) || DEVIATION_CATALOG[1];
+  const tcs = [];
+  for(let t = -4; t <= 6; t += 0.5) tcs.push(t);
+
+  const ptsBasic = [], ptsDev = [];
+  let minY = Infinity, maxY = -Infinity;
+  for(const t of tcs){
+    const { rem, totalRem } = buildSyntheticShoeAtTC(t, 4);
+    let bVal, dVal;
+    if(d.isInsurance){
+      bVal = 0; // Decline insurance = 0 EV
+      dVal = 3 * (rem[0] / totalRem) - 1;
+    } else {
+      const dp = solveLiveHandDP(d.pCards, d.dUp, rem, totalRem, TABLE_SPECS.allbets);
+      const getAct = code => code === 'S' ? dp.evStand : (code === 'H' ? dp.evHit : dp.evDouble);
+      bVal = getAct(d.basic);
+      dVal = getAct(d.dev);
+    }
+    ptsBasic.push(bVal);
+    ptsDev.push(dVal);
+    minY = Math.min(minY, bVal, dVal);
+    maxY = Math.max(maxY, bVal, dVal);
+  }
+  const padY = Math.max(0.02, (maxY - minY) * 0.18);
+  minY -= padY; maxY += padY;
+
+  const L = 52, R = 16, T = 22, B = 28;
+  const pw = W - L - R, ph = H - T - B;
+  const xOf = t => L + ((t + 4) / 10) * pw;
+  const yOf = v => T + (1 - (v - minY) / (maxY - minY)) * ph;
+
+  ctx.clearRect(0, 0, W, H);
+  // Grid
+  ctx.strokeStyle = '#1f2937'; ctx.lineWidth = 1;
+  for(let t = -4; t <= 6; t += 2){
+    const x = xOf(t);
+    ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, H - B); ctx.stroke();
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText((t>=0?'+':'') + t, x, H - 10);
+  }
+  for(let i = 0; i <= 4; i++){
+    const v = minY + (maxY - minY) * (i / 4);
+    const y = yOf(v);
+    ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke();
+    ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'right';
+    ctx.fillText((v*100).toFixed(1)+'%', L - 6, y + 3.5);
+  }
+
+  // Index threshold vertical line
+  const ix = xOf(d.indexTC);
+  ctx.strokeStyle = 'rgba(245,158,11,0.55)'; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(ix, T); ctx.lineTo(ix, H - B); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText(`Index ${d.indexTC>=0?'+':''}${d.indexTC}`, ix, 13);
+
+  // Current slider TC marker
+  const cx = xOf(L7TC);
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(cx, T); ctx.lineTo(cx, H - B); ctx.stroke();
+
+  const drawCurve = (arr, color) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    arr.forEach((v, i) => {
+      const x = xOf(tcs[i]), y = yOf(v);
+      if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  };
+  drawCurve(ptsBasic, '#60a5fa');
+  drawCurve(ptsDev, '#22c55e');
+}
+
+function renderLesson8(){
+  const sideBets = [
+    {name:'Main Blackjack (Basic Strategy)', rtp:'99.46%', edge:-0.0054, note:'Flips +EV at TC ≥ +1.5!'},
+    {name:'21+3 Side Bet', rtp:'96.30%', edge:-0.0370, note:'Flush/Straight/Trips'},
+    {name:'Lucky Lucky', rtp:'96.10%', edge:-0.0390, note:'Player 2 + Dealer Upcard'},
+    {name:'Perfect Pairs (Player / Dealer)', rtp:'95.90%', edge:-0.0410, note:'25:1 / 12:1 / 6:1'},
+    {name:'Buster Blackjack', rtp:'93.87%', edge:-0.06135, note:'Dealer bust payout'},
+    {name:'Top 3 Side Bet', rtp:'91.00%', edge:-0.0900, note:'Worst house edge at table'}
+  ];
+  const drainPerBet = L8SideBetUnits * 50;
+  return `
+    <p>You now understand the entire counting engine inside your tracker. Before you train on the drills, watch out for the three reality traps that trip up new counters — especially on online Live Blackjack like Playtech!</p>
+
+    <div class="card-sub" style="border-color:#7f1d1d">
+      <div class="row" style="margin-bottom:8px">
+        <strong class="neg">🩸 Trap #1: Playtech Side Bets Drain Your Counting Profit</strong>
+        <span class="sp"></span>
+        <span class="small mut">Side Bet Stake: <strong id="l8SideLbl" style="color:#fff">${fmtPeso(drainPerBet)}</strong>/round</span>
+      </div>
+      <input type="range" id="l8SideSlider" min="1" max="5" step="1" value="${L8SideBetUnits}">
+      <div id="l8SideBody">
+        <div class="tbl-wrap" style="margin-top:8px">
+          <table>
+            <thead><tr><th>Bet Type (From Your Tracker)</th><th class="r">Certified RTP</th><th class="r">House Edge</th><th class="r">Expected Loss / Round</th><th>Verdict</th></tr></thead>
+            <tbody>
+              ${sideBets.map((sb, i) => `
+                <tr>
+                  <td><strong>${sb.name}</strong></td>
+                  <td class="r">${sb.rtp}</td>
+                  <td class="r ${i===0?'pos':'neg'}">${pctSign(sb.edge,2)}</td>
+                  <td class="r ${i===0?'pos':'neg'}">${fmtSign(drainPerBet * sb.edge, 2)}</td>
+                  <td class="small mut">${sb.note}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="small mut" style="margin-top:6px">Notice: Even ONE <strong>${fmtPeso(drainPerBet)}</strong> Top 3 bet loses <strong>${fmtPeso(drainPerBet * 0.09, 2)}</strong> on average — wiping out the entire EV of a <strong>${fmtPeso(drainPerBet * 9)}</strong> main bet at TC +3!</div>
+      </div>
+    </div>
+
+    <div class="grid g2" style="margin-top:12px">
+      <div class="card-sub">
+        <h3 style="margin-top:0">⏳ Trap #2: 50% Penetration Means Patience</h3>
+        <div class="small mut">In your tracker’s 50k simulation of 8-deck 50% cut shoes:
+          <ul style="padding-left:18px;margin:6px 0">
+            <li><strong>57.6%</strong> of shoes reach TC ≥ +1.0</li>
+            <li><strong>42.8%</strong> of shoes ever reach TC ≥ +1.5</li>
+            <li><strong>11.5%</strong> of total rounds are in +EV territory!</li>
+          </ul>
+          That’s why your tracker shows <code>STOP &amp; WATCH (₱0)</code> most of the time — and shows <code>Dead-Shoe Reach%</code> when a shoe is too negative to recover before the cut card!
+        </div>
+      </div>
+      <div class="card-sub">
+        <h3 style="margin-top:0">🎓 Your 4-Step Training Plan (Tracker → Brain)</h3>
+        <ol class="small mut" style="padding-left:18px;margin:6px 0;line-height:1.6">
+          <li><strong>Step 1 (Drill 1):</strong> Tag single cards under <code>800ms</code> with Training Wheels OFF.</li>
+          <li><strong>Step 2 (Drill 2 &amp; 3):</strong> Cancel pairs at a glance &amp; count down a full 52-card deck to <code>0</code> in under 30 seconds.</li>
+          <li><strong>Step 3 (Drill 4):</strong> Estimate Remaining Decks from the discard tray &amp; divide RC mentally to ±0.5 TC.</li>
+          <li><strong>Step 4 (Audit Mode):</strong> Open Playtech + your tracker, <em>count in your head first</em>, and only glance at the tracker after each round to grade yourself!</li>
+        </ol>
+      </div>
+    </div>
+  `;
+}
+
+function wireLessonEvents(L, curIdx){
+  document.querySelectorAll('[data-go-lesson]').forEach(b => {
+    b.onclick = () => { S.lessonIdx = +b.dataset.goLesson; saveState(); renderLearn(); };
+  });
+  const prevBtn = document.getElementById('prevLessonBtn');
+  if(prevBtn) prevBtn.onclick = () => { S.lessonIdx = Math.max(0, curIdx - 1); saveState(); renderLearn(); window.scrollTo({top:0,behavior:'smooth'}); };
+  const nextBtn = document.getElementById('nextLessonBtn');
+  if(nextBtn) nextBtn.onclick = () => { S.lessonIdx = Math.min(LESSONS.length - 1, curIdx + 1); saveState(); renderLearn(); window.scrollTo({top:0,behavior:'smooth'}); };
+  const goDrills = document.getElementById('goDrillsFromL8');
+  if(goDrills) goDrills.onclick = () => switchTab('drills');
+
+  // Quiz clicking
+  document.querySelectorAll('[data-quiz-id]').forEach(btn => {
+    btn.onclick = () => {
+      const lid = btn.dataset.quizId;
+      const qi = +btn.dataset.qi, oi = +btn.dataset.oi;
+      const les = LESSONS.find(x => x.id === lid);
+      const qz = les.quizzes[qi];
+      S.quizAnswers[`${lid}Q${qi}_pick`] = oi;
+      S.quizAnswers[`${lid}Q${qi}`] = (oi === qz.ans);
+      const allDone = les.quizzes.every((_, idx) => S.quizAnswers[`${lid}Q${idx}`] === true);
+      if(allDone && !S.completedLessons.includes(lid)) S.completedLessons.push(lid);
+      saveState();
+      renderLearn();
+    };
+  });
+
+  // L1 events
+  const l1Reset = document.getElementById('l1Reset');
+  if(l1Reset) l1Reset.onclick = () => { L1Rem = [128,32,32,32,32,32,32,32,32,32]; renderLearn(); };
+  document.querySelectorAll('[data-l1-rem]').forEach(b => {
+    b.onclick = () => {
+      const k = b.dataset.l1Rem;
+      if(k === '5') L1Rem[5] = Math.max(0, L1Rem[5] - 4);
+      else if(k === 'low'){ for(let r=2;r<=6;r++) L1Rem[r] = Math.max(0, L1Rem[r] - 1); }
+      else if(k === '10') L1Rem[0] = Math.max(0, L1Rem[0] - 4);
+      else if(k === '1') L1Rem[1] = Math.max(0, L1Rem[1] - 2);
+      renderLearn();
+    };
+  });
+
+  // L2 events
+  const l2Next = document.getElementById('l2NextBtn');
+  if(l2Next) l2Next.onclick = () => { nextL2Hand(); renderLearn(); };
+  document.querySelectorAll('[data-l2-ans]').forEach(b => {
+    b.onclick = () => {
+      const guess = b.dataset.l2Ans;
+      const ok = guess === L2Hand.ans;
+      L2Score.tot++; if(ok) L2Score.ok++;
+      L2Feedback = { ok };
+      renderLearn();
+    };
+  });
+
+  // L3 events
+  document.querySelectorAll('[data-l3-tag]').forEach(b => {
+    b.onclick = () => {
+      const g = +b.dataset.l3Tag;
+      const ms = Math.round(performance.now() - L3Stats.shownAt);
+      const ok = g === L3Card.tag;
+      L3Stats.tot++;
+      if(ok){ L3Stats.ok++; L3Stats.times.push(ms); }
+      const feedbackMsg = ok
+        ? `✓ Nice! ${L3Card.face}${L3Card.suit.sym} is ${hiloText(L3Card.tag)} (${ms}ms)`
+        : `✕ ${L3Card.face}${L3Card.suit.sym} is ${hiloText(L3Card.tag)}! (2–6 = +1, 7–9 = 0, 10/J/Q/K/A = -1)`;
+      nextL3Card();
+      L3Feedback = { ok, msg: feedbackMsg };
+      renderLearn();
+    };
+  });
+
+  // L4 events
+  const l4New = document.getElementById('l4NewBtn');
+  if(l4New) l4New.onclick = () => { nextL4Round(); renderLearn(); };
+  const l4Auto = document.getElementById('l4AutoCancelBtn');
+  if(l4Auto) l4Auto.onclick = () => {
+    L4Cancelled = new Set(); L4Selected = null;
+    const lows = [], his = [];
+    L4Cards.forEach((c, i) => {
+      if(c.tag === 0) L4Cancelled.add(i);
+      else if(c.tag > 0) lows.push(i);
+      else his.push(i);
+    });
+    const pairs = Math.min(lows.length, his.length);
+    for(let k = 0; k < pairs; k++){ L4Cancelled.add(lows[k]); L4Cancelled.add(his[k]); }
+    renderLearn();
+  };
+  document.querySelectorAll('#tab-learn [data-cidx]').forEach(el => {
+    el.onclick = () => {
+      const idx = +el.dataset.cidx;
+      if(L4Cancelled.has(idx)) return;
+      const card = L4Cards[idx];
+      if(card.tag === 0){
+        L4Cancelled.add(idx); L4Selected = null; renderLearn(); return;
+      }
+      if(L4Selected === null){ L4Selected = idx; renderLearn(); return; }
+      if(L4Selected === idx){ L4Selected = null; renderLearn(); return; }
+      if(L4Cards[L4Selected].tag + card.tag === 0){
+        L4Cancelled.add(L4Selected); L4Cancelled.add(idx); L4Selected = null;
+        renderLearn();
+      } else {
+        L4Selected = null;
+        L4Feedback = { ok:false, msg:'Those two don’t cancel! Pair one +1 (2–6) with one -1 (10–A).' };
+        renderLearn();
+      }
+    };
+  });
+  document.querySelectorAll('[data-l4-guess]').forEach(b => {
+    b.onclick = () => {
+      const g = +b.dataset.l4Guess;
+      const actual = L4Cards.reduce((a,c)=>a+c.tag, 0);
+      const ok = g === actual;
+      L4Score.tot++; if(ok) L4Score.ok++;
+      L4Feedback = { ok, msg: ok ? `✓ Exact! Net round count is ${actual>0?'+'+actual:actual}.` : `✕ Not quite — net round count was ${actual>0?'+'+actual:actual}.` };
+      renderLearn();
+    };
+  });
+
+  // L5 events (smooth input without losing slider focus!)
+  const l5Rc = document.getElementById('l5RcSlider');
+  const l5Dealt = document.getElementById('l5DealtSlider');
+  const updateL5 = () => {
+    L5SimRC = +l5Rc.value; L5SimDealt = +l5Dealt.value;
+    const remD = Math.max(0.5, (416 - L5SimDealt) / 52);
+    const pTC = L5SimRC / remD;
+    const vRemD = (312 - Math.round(312 * 0.72)) / 52;
+    const vTC = L5SimRC / vRemD;
+    document.getElementById('l5RcVal').textContent = (L5SimRC>=0?'+':'') + L5SimRC;
+    document.getElementById('l5DealtVal').textContent = `${L5SimDealt} cards (${(L5SimDealt/52).toFixed(1)}D dealt · ${remD.toFixed(1)}D left)`;
+    document.getElementById('l5RackWrap').innerHTML = renderDiscardRackSVG(L5SimDealt, 416, 50);
+    document.getElementById('l5ReadoutGrid').innerHTML = `
+      <div class="stat"><div class="k">Your Shoe True Count</div><div class="v ${pTC>=1.5?'pos':pTC<0?'neg':''}">${pTC>=0?'+':''}${pTC.toFixed(2)}</div><div class="small mut">RC ${L5SimRC} ÷ ${remD.toFixed(2)} decks</div></div>
+      <div class="stat"><div class="k">Same RC @ 1.7D Left (Vegas 75% Cut)</div><div class="v ${vTC>=1.5?'pos':vTC<0?'neg':''}">${vTC>=0?'+':''}${vTC.toFixed(2)}</div><div class="small mut">Why deeper cut = bigger TC swings!</div></div>
+    `;
+  };
+  if(l5Rc) l5Rc.oninput = updateL5;
+  if(l5Dealt) l5Dealt.oninput = updateL5;
+  const l5NewQ = document.getElementById('l5NewQuizBtn');
+  if(l5NewQ) l5NewQ.onclick = () => { nextL5Quiz(); renderLearn(); };
+  const l5Check = document.getElementById('l5CheckQuizBtn');
+  if(l5Check) l5Check.onclick = () => {
+    const gRem = +document.getElementById('l5GuessRem').value;
+    const gTC = +document.getElementById('l5GuessTC').value;
+    const remErr = Math.abs(gRem - L5Quiz.remDecks);
+    const tcErr = Math.abs(gTC - L5Quiz.exactTC);
+    const ok = remErr <= 0.6 && tcErr <= 0.65;
+    L5Feedback = {
+      ok,
+      msg: ok
+        ? `✓ Nailed it! Exact Rem = ${L5Quiz.remDecks.toFixed(1)}D, Exact TC = ${L5Quiz.exactTC>=0?'+':''}${L5Quiz.exactTC.toFixed(2)}`
+        : `Exact was ${L5Quiz.remDecks.toFixed(1)} decks left → ${L5Quiz.rc} ÷ ${L5Quiz.remDecks.toFixed(1)} = ${L5Quiz.exactTC>=0?'+':''}${L5Quiz.exactTC.toFixed(2)} TC.`
+    };
+    renderLearn();
+  };
+
+  // L6 events (smooth slider updates)
+  document.querySelectorAll('[data-l6-mode]').forEach(b => {
+    b.onclick = () => { L6Mode = b.dataset.l6Mode; renderLearn(); };
+  });
+  const l6TcSl = document.getElementById('l6TcSlider');
+  const l6BkSl = document.getElementById('l6BkSlider');
+  const updateL6 = () => {
+    L6TC = +l6TcSl.value; L6BankUnits = +l6BkSl.value;
+    const unit = 50;
+    const units = L6Mode === 'playall'
+      ? (L6TC>=4?4 : L6TC>=3?3 : L6TC>=2?2 : 1)
+      : (L6TC>=4?4 : L6TC>=3?3 : L6TC>=2?2 : L6TC>=1.5?1 : 0);
+    const edge = -0.0054 + 0.0050 * L6TC;
+    const ev = units * unit * edge;
+    document.getElementById('l6TcLbl').textContent = (L6TC>=0?'+':'') + L6TC.toFixed(1);
+    document.getElementById('l6BkLbl').textContent = `${L6BankUnits} units (${fmtPeso(L6BankUnits*unit)})`;
+    document.getElementById('l6StatsGrid').innerHTML = `
+      <div class="stat"><div class="k">Recommended Bet</div><div class="v ${units>0?'pos':'mut'}">${units===0 ? '₱0 (SIT OUT)' : fmtPeso(units*unit) + ` (${units}×)`}</div><div class="small mut">Mode: ${L6Mode==='wong'?'Pure Wonging':'Play-All'}</div></div>
+      <div class="stat"><div class="k">Approx. Player Edge</div><div class="v ${edge>=0?'pos':'neg'}">${pctSign(edge,2)}</div><div class="small mut">Base -0.54% + 0.50% × TC</div></div>
+      <div class="stat"><div class="k">Expected Profit / Hand</div><div class="v ${ev>0?'pos':ev<0?'neg':'mut'}">${units===0?'₱0.00':fmtSign(ev,2)}</div><div class="small mut">On this 1 round</div></div>
+    `;
+    const ror = L6BankUnits < 35
+      ? {cls:'trap', lbl:'DANGER — Very High Risk of Busting (under 35 units!)'}
+      : L6BankUnits < 80 ? {cls:'warn', lbl:'MODERATE RISK — Tight Swing Cushion (35–80 units)'}
+      : {cls:'good', lbl:'HEALTHY — Solid Advantage Cushion (80+ units)'};
+    const rorBox = document.getElementById('l6RorBox');
+    rorBox.className = `callout ${ror.cls}`;
+    rorBox.querySelector('strong').textContent = ror.lbl;
+  };
+  if(l6TcSl) l6TcSl.oninput = updateL6;
+  if(l6BkSl) l6BkSl.oninput = updateL6;
+
+  // L7 events
+  const l7Sel = document.getElementById('l7DevSelect');
+  if(l7Sel) l7Sel.onchange = () => { L7DevId = l7Sel.value; renderLearn(); };
+  const l7Sl = document.getElementById('l7TcSlider');
+  if(l7Sl) l7Sl.oninput = () => {
+    L7TC = +l7Sl.value;
+    document.getElementById('l7TcVal').textContent = (L7TC>=0?'+':'') + L7TC.toFixed(1);
+    const d = DEVIATION_CATALOG.find(x => x.id === L7DevId) || DEVIATION_CATALOG[1];
+    const { rem, totalRem } = buildSyntheticShoeAtTC(L7TC, 4);
+    let html = '';
+    if(d.isInsurance){
+      const tenProb = rem[0]/totalRem, insEv = 3*tenProb - 1, take = tenProb > 1/3;
+      html = `
+        <div class="stat"><div class="k">Remaining 10s Density</div><div class="v ${take?'pos':'neg'}">${pct(tenProb,1)}</div><div class="small mut">Break-even = 33.3%</div></div>
+        <div class="stat"><div class="k">Insurance EV (2:1 payout)</div><div class="v ${insEv>0?'pos':'neg'}">${pctSign(insEv,2)}</div><div class="small mut">${take?'⚡ TAKE INSURANCE':'🛑 DECLINE INSURANCE'}</div></div>
+      `;
+    } else {
+      const dp = solveLiveHandDP(d.pCards, d.dUp, rem, totalRem, TABLE_SPECS.allbets);
+      const activeDev = d.dir === '>=' ? (L7TC >= d.indexTC) : (L7TC < d.indexTC);
+      const actMap = {S:'STAND', H:'HIT', D:'DOUBLE'};
+      html = `
+        <div class="stat"><div class="k">Basic Strategy (${actMap[d.basic]}) EV</div><div class="v">${pctSign(d.basic==='S'?dp.evStand:dp.evHit, 2)}</div><div class="small mut">Default play</div></div>
+        <div class="stat"><div class="k">Deviation (${actMap[d.dev]}) EV</div><div class="v ${activeDev?'pos':'mut'}">${pctSign(d.dev==='S'?dp.evStand:(d.dev==='H'?dp.evHit:dp.evDouble), 2)}</div><div class="small mut">${activeDev?'⚡ DEVIATION ACTIVE!':'Wait for TC ' + d.dir + ' ' + d.indexTC}</div></div>
+      `;
+    }
+    document.getElementById('l7StatsGrid').innerHTML = html;
+    drawL7CrossoverChart();
+  };
+
+  // L8 events
+  const l8Sl = document.getElementById('l8SideSlider');
+  if(l8Sl) l8Sl.oninput = () => {
+    L8SideBetUnits = +l8Sl.value;
+    const drain = L8SideBetUnits * 50;
+    document.getElementById('l8SideLbl').textContent = fmtPeso(drain);
+    const sideBets = [
+      {name:'Main Blackjack (Basic Strategy)', rtp:'99.46%', edge:-0.0054, note:'Flips +EV at TC ≥ +1.5!'},
+      {name:'21+3 Side Bet', rtp:'96.30%', edge:-0.0370, note:'Flush/Straight/Trips'},
+      {name:'Lucky Lucky', rtp:'96.10%', edge:-0.0390, note:'Player 2 + Dealer Upcard'},
+      {name:'Perfect Pairs (Player / Dealer)', rtp:'95.90%', edge:-0.0410, note:'25:1 / 12:1 / 6:1'},
+      {name:'Buster Blackjack', rtp:'93.87%', edge:-0.06135, note:'Dealer bust payout'},
+      {name:'Top 3 Side Bet', rtp:'91.00%', edge:-0.0900, note:'Worst house edge at table'}
+    ];
+    document.getElementById('l8SideBody').innerHTML = `
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table>
+          <thead><tr><th>Bet Type (From Your Tracker)</th><th class="r">Certified RTP</th><th class="r">House Edge</th><th class="r">Expected Loss / Round</th><th>Verdict</th></tr></thead>
+          <tbody>
+            ${sideBets.map((sb, i) => `
+              <tr>
+                <td><strong>${sb.name}</strong></td>
+                <td class="r">${sb.rtp}</td>
+                <td class="r ${i===0?'pos':'neg'}">${pctSign(sb.edge,2)}</td>
+                <td class="r ${i===0?'pos':'neg'}">${fmtSign(drain * sb.edge, 2)}</td>
+                <td class="small mut">${sb.note}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="small mut" style="margin-top:6px">Notice: Even ONE <strong>${fmtPeso(drain)}</strong> Top 3 bet loses <strong>${fmtPeso(drain * 0.09, 2)}</strong> on average — wiping out the entire EV of a <strong>${fmtPeso(drain * 9)}</strong> main bet at TC +3!</div>
+    `;
+  };
+}
+
+/* ============================================================================
+   4. TAB 2: BRAIN & SPEED DRILLS (5 DELIBERATE PRACTICE MODULES)
+   ============================================================================ */
+let D1 = { deck:[], card:null, mode:'deck52', count:0, ok:0, streak:0, times:[], shownAt:0, feedback:null, doneSummary:null };
+let D2 = { nCards:6, flashMs:0, cards:[], hidden:false, hideTimer:null, feedback:null, ok:0, tot:0, streak:0 };
+let D3 = {
+  decks:1, speedMs:1000, shoe:[], dealt:[], rc:0, running:false, timer:null,
+  checkpoint:null, nextCheckAt:14, feedback:null, showAudit:false
+};
+let D4 = { rc:0, remDecks:4, dealtCards:208, feedback:null, ok:0, tot:0, streak:0 };
+let D5 = { filter:'mixed', scenario:null, feedback:null, ok:0, tot:0, streak:0 };
+
+function clearDrillTimers(){
+  if(D2.hideTimer){ clearTimeout(D2.hideTimer); D2.hideTimer = null; }
+  if(D3.timer){ clearInterval(D3.timer); D3.timer = null; }
+  D3.running = false;
+}
+
+function startD1(){
+  D1.deck = createShuffledShoe(1);
+  D1.count = 0; D1.ok = 0; D1.streak = 0; D1.times = []; D1.feedback = null; D1.doneSummary = null;
+  D1.card = D1.deck.pop();
+  D1.shownAt = performance.now();
+}
+
+function answerD1(guess){
+  if(!D1.card || D1.doneSummary) return;
+  const ms = Math.round(performance.now() - D1.shownAt);
+  const ok = guess === D1.card.tag;
+  D1.count++;
+  if(ok){
+    D1.ok++; D1.streak++; D1.times.push(ms);
+    if(D1.streak > S.bests.flashBestStreak) S.bests.flashBestStreak = D1.streak;
+    D1.feedback = {ok:true, msg:`✓ ${D1.card.face}${D1.card.suit.sym} = ${hiloText(D1.card.tag)} (${ms}ms)`};
+  } else {
+    D1.streak = 0;
+    D1.feedback = {ok:false, msg:`✕ ${D1.card.face}${D1.card.suit.sym} is ${hiloText(D1.card.tag)}, not ${hiloText(guess)}`};
+  }
+  if(D1.mode === 'deck52' && D1.deck.length === 0){
+    const avgMs = D1.times.length ? Math.round(D1.times.reduce((a,b)=>a+b,0)/D1.times.length) : 0;
+    const acc = D1.ok / 52;
+    if(acc >= 0.90 && avgMs > 0 && (S.bests.flashBestMs === null || avgMs < S.bests.flashBestMs)){
+      S.bests.flashBestMs = avgMs;
+    }
+    D1.doneSummary = { acc, avgMs, ok:D1.ok };
+    D1.card = null;
+  } else {
+    if(!D1.deck.length) D1.deck = createShuffledShoe(1);
+    D1.card = D1.deck.pop();
+    D1.shownAt = performance.now();
+  }
+  saveState();
+  renderDrills();
+}
+
+function dealD2(){
+  if(D2.hideTimer){ clearTimeout(D2.hideTimer); D2.hideTimer = null; }
+  const deck = createShuffledShoe(2);
+  D2.cards = deck.slice(0, D2.nCards);
+  D2.hidden = false;
+  D2.feedback = null;
+  renderDrills();
+  if(D2.flashMs > 0){
+    D2.hideTimer = setTimeout(() => {
+      D2.hidden = true;
+      renderDrills();
+    }, D2.flashMs);
+  }
+}
+
+function answerD2(guess){
+  if(D2.hideTimer){ clearTimeout(D2.hideTimer); D2.hideTimer = null; }
+  D2.hidden = false;
+  const actual = D2.cards.reduce((a,c)=>a+c.tag, 0);
+  const ok = guess === actual;
+  D2.tot++;
+  if(ok){
+    D2.ok++; D2.streak++;
+    if(D2.streak > S.bests.cancelBestStreak) S.bests.cancelBestStreak = D2.streak;
+  } else {
+    D2.streak = 0;
+  }
+  D2.feedback = { ok, actual, guess };
+  saveState();
+  renderDrills();
+}
+
+function resetD3(){
+  clearDrillTimers();
+  D3.shoe = createShuffledShoe(D3.decks);
+  D3.dealt = [];
+  D3.rc = 0;
+  D3.checkpoint = null;
+  D3.nextCheckAt = D3.decks === 1 ? 14 + Math.floor(Math.random()*6) : 14 + Math.floor(Math.random()*8);
+  D3.feedback = null;
+  D3.showAudit = false;
+}
+
+function stepD3(){
+  if(D3.checkpoint || !D3.shoe.length) return;
+  const card = D3.shoe.pop();
+  D3.dealt.push(card);
+  D3.rc += card.tag;
+
+  const isEnd1Deck = D3.decks === 1 && D3.shoe.length === 0;
+  const isCheck = D3.dealt.length >= D3.nextCheckAt || isEnd1Deck;
+  if(isCheck){
+    clearDrillTimers();
+    const remDecks = Math.max(0.25, D3.shoe.length / 52);
+    D3.checkpoint = {
+      isFinal: isEnd1Deck,
+      actualRC: D3.rc,
+      remCards: D3.shoe.length,
+      remDecks,
+      actualTC: D3.shoe.length > 0 ? D3.rc / remDecks : 0
+    };
+  }
+  renderDrills();
+}
+
+function toggleD3Auto(){
+  if(D3.checkpoint) return;
+  if(D3.running){
+    clearDrillTimers();
+    renderDrills();
+  } else {
+    D3.running = true;
+    renderDrills();
+    if(D3.speedMs > 0){
+      D3.timer = setInterval(() => {
+        if(!D3.running || S.tab !== 'drills' || S.drillMode !== 'countdown'){
+          clearDrillTimers(); return;
+        }
+        stepD3();
+      }, D3.speedMs);
+    }
+  }
+}
+
+function nextD4(){
+  const choices = [1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0];
+  D4.remDecks = choices[Math.floor(Math.random() * choices.length)];
+  D4.dealtCards = Math.round((8 - D4.remDecks) * 52);
+  D4.rc = Math.floor(Math.random() * 21) - 5; // -5 to +15
+  D4.feedback = null;
+}
+
+function nextD5(){
+  const poolBasic = [
+    {p:[10,6], d:6, tc:0, cat:'Basic', act:'S', why:'Dealer 6 is in the Bust Zone. Stand on 16 vs 2–6!'},
+    {p:[10,6], d:9, tc:0, cat:'Basic', act:'H', why:'Dealer 9 is strong (likely 19). Basic Strategy hits 16 vs 7–A.'},
+    {p:[10,2], d:2, tc:0, cat:'Basic', act:'H', why:'Hard 12 vs 2 or 3: Basic Strategy HITS (only 4 ranks bust you).'},
+    {p:[10,2], d:5, tc:0, cat:'Basic', act:'S', why:'Hard 12 vs 4–6: Stand and let the dealer bust!'},
+    {p:[6,5], d:10, tc:0, cat:'Basic', act:'D', why:'11 vs 10 (Playtech OBO/US Peek): Double Down!'},
+    {p:[1,7], d:5, tc:0, cat:'Basic', act:'D', why:'Soft 18 (A,7) vs 3–6: You cannot bust — Double Down!'},
+    {p:[1,7], d:10, tc:0, cat:'Basic', act:'H', why:'Soft 18 vs 9, 10, Ace: Hit to improve against likely 19–20.'},
+    {p:[8,8], d:10, cat:'Basic', act:'P', why:'Always split 8,8 and A,A! Two hands starting with 8 beat playing one 16.'},
+    {p:[9,9], d:7, tc:0, cat:'Basic', act:'S', why:'9,9 = 18 already beats a Dealer 17 (10 under 7). Stand!'},
+    {p:[9,9], d:8, tc:0, cat:'Basic', act:'P', why:'Split 9,9 vs 2–6, 8, 9 (stand only vs 7, 10, A).'},
+    {p:[5,5], d:8, tc:0, cat:'Basic', act:'D', why:'Never split 5,5! Treat 5+5 as Hard 10 and Double vs 2–9.'},
+    {p:[4,4], d:5, tc:0, cat:'Basic', act:'P', why:'With DAS (Double After Split) allowed, split 4,4 vs 5 or 6!'}
+  ];
+
+  const poolDev = [];
+  for(const dv of DEVIATION_CATALOG){
+    // Generate either an ACTIVE deviation TC or a WAIT (Basic) TC
+    const triggerActive = Math.random() < 0.65;
+    let tc;
+    if(dv.dir === '>='){
+      tc = triggerActive ? +(dv.indexTC + (Math.random()*2.5)).toFixed(1) : +(dv.indexTC - 1.5 - Math.random()*1.5).toFixed(1);
+    } else {
+      tc = triggerActive ? +(dv.indexTC - 1.5 - Math.random()*1.5).toFixed(1) : +(dv.indexTC + 1.0 + Math.random()*2.0).toFixed(1);
+    }
+    const act = triggerActive ? dv.dev : dv.basic;
+    poolDev.push({
+      p: dv.pCards, d: dv.dUp, tc, cat: dv.isInsurance ? 'Insurance' : (triggerActive ? 'Deviation' : 'Basic (Wait)'),
+      isInsurance: !!dv.isInsurance, act, devRef: dv,
+      why: triggerActive
+        ? `⚡ DEVIATION ACTIVE (TC ${tc>=0?'+':''}${tc} meets ${dv.dir} ${dv.indexTC}): ${dv.why}`
+        : `Stick to Basic Strategy here! TC ${tc>=0?'+':''}${tc} has NOT crossed index ${dv.dir} ${dv.indexTC}. ${dv.why}`
+    });
+  }
+
+  let pick;
+  if(D5.filter === 'basic') pick = poolBasic[Math.floor(Math.random()*poolBasic.length)];
+  else if(D5.filter === 'dev') pick = poolDev[Math.floor(Math.random()*poolDev.length)];
+  else pick = Math.random() < 0.5 ? poolDev[Math.floor(Math.random()*poolDev.length)] : poolBasic[Math.floor(Math.random()*poolBasic.length)];
+
+  D5.scenario = {
+    ...pick,
+    pCards: pick.p.map(r => makeCardObj(r === 10 ? 0 : r)),
+    dCard: makeCardObj(pick.d === 10 ? 0 : pick.d)
+  };
+  D5.feedback = null;
+}
+
+function initDrills(){
+  if(!D1.card && !D1.doneSummary) startD1();
+  if(!D2.cards.length) dealD2();
+  if(!D3.shoe.length && !D3.dealt.length) resetD3();
+  if(!D5.scenario) nextD5();
+}
+
+function renderDrills(){
+  initDrills();
+  const el = document.getElementById('tab-drills');
+  const modes = [
+    {id:'flash', lbl:'1. Single-Card Reflex'},
+    {id:'cancel', lbl:'2. Pair Cancellation Gym'},
+    {id:'countdown', lbl:'3. Live Shoe Countdown'},
+    {id:'tcmath', lbl:'4. Discard Tray & TC Math'},
+    {id:'deviations', lbl:'5. Strategy & Deviations'}
+  ];
+
+  let body = '';
+  if(S.drillMode === 'flash') body = renderDrill1();
+  else if(S.drillMode === 'cancel') body = renderDrill2();
+  else if(S.drillMode === 'countdown') body = renderDrill3();
+  else if(S.drillMode === 'tcmath') body = renderDrill4();
+  else body = renderDrill5();
+
+  el.innerHTML = `
+    <div class="subnav">
+      ${modes.map(m => `<button class="${S.drillMode===m.id?'on':''}" data-dmode="${m.id}">${m.lbl}</button>`).join('')}
+    </div>
+    ${body}
+  `;
+
+  document.querySelectorAll('[data-dmode]').forEach(b => {
+    b.onclick = () => {
+      clearDrillTimers();
+      S.drillMode = b.dataset.dmode;
+      saveState();
+      renderDrills();
+    };
+  });
+  wireDrillEvents();
+}
+
+function renderDrill1(){
+  if(D1.count === 0) D1.shownAt = performance.now();
+  const avgMs = D1.times.length ? Math.round(D1.times.reduce((a,b)=>a+b,0)/D1.times.length) : 0;
+  const bestTxt = S.bests.flashBestMs ? `${S.bests.flashBestMs}ms` : '—';
+  return `
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <h2 style="margin:0">🃏 Drill 1: Single-Card Hi-Lo Reflex</h2>
+        <span class="sp"></span>
+        <button class="btn xs ${D1.mode==='deck52'?'on':''}" data-d1-mode="deck52">52-Card Timed Deck</button>
+        <button class="btn xs ${D1.mode==='endless'?'on':''}" data-d1-mode="endless">Endless Warmup</button>
+        <button class="btn xs" id="d1RestartBtn">↺ Restart</button>
+      </div>
+      <div class="grid g4" style="margin-bottom:12px">
+        <div class="stat"><div class="k">Progress</div><div class="v">${D1.mode==='deck52' ? D1.count + ' / 52' : D1.count}</div></div>
+        <div class="stat"><div class="k">Accuracy</div><div class="v ${D1.count && D1.ok/D1.count>=0.95?'pos':''}">${D1.count ? Math.round(D1.ok/D1.count*100)+'%' : '—'}</div></div>
+        <div class="stat"><div class="k">Avg Speed (Goal &lt;800ms)</div><div class="v ${avgMs && avgMs<800?'pos':''}">${avgMs ? avgMs+'ms' : '—'}</div><div class="small mut">Best 52-card avg: ${bestTxt}</div></div>
+        <div class="stat"><div class="k">Streak</div><div class="v cyan">${D1.streak}</div><div class="small mut">Best: ${S.bests.flashBestStreak}</div></div>
+      </div>
+      <div class="felt">
+        ${D1.doneSummary ? `
+          <div style="text-align:center;padding:18px">
+            <h2 style="color:#86efac;font-size:20px">🎉 52-Card Deck Complete!</h2>
+            <p>Accuracy: <strong>${D1.doneSummary.ok}/52 (${Math.round(D1.doneSummary.acc*100)}%)</strong> · Avg Speed: <strong>${D1.doneSummary.avgMs}ms/card</strong></p>
+            <p class="small mut">${D1.doneSummary.avgMs < 800 && D1.doneSummary.acc >= 0.94 ? 'Pro-grade reflex! Try turning Training Wheels OFF or moving to Drill 2: Pair Cancellation!' : 'Nice run! Aim for ≥95% accuracy under 800ms/card.'}</p>
+            <button class="btn good" id="d1PlayAgainBtn">Run Another 52-Card Deck</button>
+          </div>
+        ` : `
+          <div class="cards-row" style="min-height:150px">${renderCardHTML(D1.card, {size:'lg', animate:true})}</div>
+          <div class="row" style="justify-content:center;margin-top:14px">
+            <button class="btn good" data-d1-ans="1" style="min-width:130px">[1 / ←] +1 Low (2–6)</button>
+            <button class="btn" data-d1-ans="0" style="min-width:130px">[2 / ↓] 0 Mid (7–9)</button>
+            <button class="btn danger" data-d1-ans="-1" style="min-width:130px">[3 / →] -1 High (10–A)</button>
+          </div>
+          <div style="text-align:center;margin-top:10px" class="small ${D1.feedback ? (D1.feedback.ok?'pos':'neg') : 'mut'}">
+            ${D1.feedback ? D1.feedback.msg : 'Tip: Use keyboard keys 1 / 2 / 3 or Arrow keys for lightning speed!'}
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+function renderDrill2(){
+  return `
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <h2 style="margin:0">⚡ Drill 2: Pair Cancellation Gym</h2>
+        <span class="sp"></span>
+        <button class="btn xs ${D2.nCards===4?'on':''}" data-d2-n="4">4 Cards</button>
+        <button class="btn xs ${D2.nCards===6?'on':''}" data-d2-n="6">6 Cards (3 Boxes)</button>
+        <button class="btn xs ${D2.flashMs===0?'on':''}" data-d2-f="0">Untimed</button>
+        <button class="btn xs ${D2.flashMs===2500?'on':''}" data-d2-f="2500">2.5s Flash</button>
+        <button class="btn xs ${D2.flashMs===1500?'on':''}" data-d2-f="1500">1.5s Pro Flash</button>
+      </div>
+      <div class="row small mut" style="margin-bottom:10px">
+        <span>Don’t add cards one by one! Mentally cross out every <strong>(+1 &amp; -1)</strong> pair and ignore <strong>7–9</strong>s, then read the leftover sum.</span>
+        <span class="sp"></span>
+        <span class="pill green">Score: ${D2.ok}/${D2.tot}</span>
+        <span class="pill blue">Streak: ${D2.streak} (Best ${S.bests.cancelBestStreak})</span>
+      </div>
+      <div class="felt">
+        <div class="cards-row" style="gap:12px;min-height:110px">
+          ${D2.cards.map(c => renderCardHTML(c, {faceDown: D2.hidden, animate: !D2.hidden})).join('')}
+        </div>
+        ${D2.hidden ? `<div style="text-align:center;color:#fde68a;font-size:13px;font-weight:700;margin-top:8px">⏱️ Time’s up! Enter the net count from memory:</div>` : ''}
+        <div class="row" style="justify-content:center;margin-top:14px;gap:6px">
+          ${[-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6].map(v => `
+            <button class="btn sm ${D2.feedback && D2.feedback.actual===v ? 'good' : ''}" data-d2-ans="${v}" ${D2.feedback?'disabled':''}>${v>0?'+'+v:v}</button>
+          `).join('')}
+        </div>
+        ${D2.feedback ? `
+          <div class="callout ${D2.feedback.ok?'good':'trap'}" style="margin-top:12px;margin-bottom:0">
+            <div class="row">
+              <strong>${D2.feedback.ok ? '✓ Spot on!' : '✕ Net count was ' + (D2.feedback.actual>0?'+'+D2.feedback.actual:D2.feedback.actual)}</strong>
+              <span class="sp"></span>
+              <button class="btn sm primary" id="d2NextBtn">Deal Next Table →</button>
+            </div>
+            <div class="small mut" style="margin-top:4px">${D2.cards.map(c => `${c.face}${c.suit.sym} (${hiloText(c.tag)})`).join(' · ')} = <strong>${D2.feedback.actual>0?'+'+D2.feedback.actual:D2.feedback.actual}</strong></div>
+          </div>
+        ` : `<div style="text-align:center;margin-top:10px"><button class="btn xs" id="d2ReDealBtn">↻ Re-deal</button></div>`}
+      </div>
+    </div>
+  `;
+}
+
+function renderDrill3(){
+  const visibleCards = D3.dealt.slice(-8);
+  const cp = D3.checkpoint;
+  return `
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <h2 style="margin:0">⏱️ Drill 3: Live Shoe Countdown &amp; Checkpoint</h2>
+        <span class="sp"></span>
+        <button class="btn xs ${D3.decks===1?'on':''}" data-d3-decks="1">1-Deck (52 Cards → Ends at 0!)</button>
+        <button class="btn xs ${D3.decks===8?'on':''}" data-d3-decks="8">8-Deck Shoe (RC + TC)</button>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <span class="small mut">Auto Pace:</span>
+        <button class="btn xs ${D3.speedMs===1800?'on':''}" data-d3-spd="1800">Beginner (1.8s)</button>
+        <button class="btn xs ${D3.speedMs===1000?'on':''}" data-d3-spd="1000">Table (1.0s)</button>
+        <button class="btn xs ${D3.speedMs===600?'on':''}" data-d3-spd="600">Turbo (0.6s)</button>
+        <button class="btn xs ${D3.speedMs===0?'on':''}" data-d3-spd="0">Manual</button>
+        <span class="sp"></span>
+        <span class="pill green">Checkpoints Passed: ${S.bests.countdownPasses}</span>
+        <button class="btn xs danger" id="d3ResetBtn">↺ New Shoe</button>
+      </div>
+
+      <div class="grid g3" style="margin-bottom:10px">
+        <div class="stat"><div class="k">Cards Dealt</div><div class="v">${D3.dealt.length} / ${D3.decks * 52}</div></div>
+        <div class="stat"><div class="k">Remaining Decks</div><div class="v">${(D3.shoe.length / 52).toFixed(2)} D</div></div>
+        <div class="stat"><div class="k">Status</div><div class="v" style="font-size:16px">${cp ? '⏸️ Checkpoint Quiz!' : (D3.running ? '▶ Dealing Live...' : '⏸ Ready')}</div></div>
+      </div>
+
+      <div class="felt">
+        <div class="cards-row" style="min-height:112px">
+          ${visibleCards.length
+            ? visibleCards.map((c, idx) => renderCardHTML(c, {size: idx===visibleCards.length-1 ? 'lg' : 'sm', animate: idx===visibleCards.length-1})).join('')
+            : '<div class="mut">Press Start / Next Card to begin dealing from the shoe!</div>'}
+        </div>
+
+        ${!cp ? `
+          <div class="row" style="justify-content:center;margin-top:14px">
+            ${D3.speedMs > 0 ? `<button class="btn ${D3.running?'amber':'good'}" id="d3PlayBtn">${D3.running?'⏸ Pause':'▶ Start Auto Deal'}</button>` : ''}
+            <button class="btn primary" id="d3StepBtn">[Space] Deal Next Card</button>
+          </div>
+        ` : `
+          <div class="card-sub" style="margin-top:14px;border-color:#f59e0b">
+            <strong style="color:#fde68a">${cp.isFinal ? '🏁 Final Deck Complete! What MUST your final Running Count be?' : '🛑 Random Checkpoint! Test your mental count:'}</strong>
+            <div class="row" style="margin-top:8px">
+              <label class="small">Running Count (RC):
+                <input type="number" id="d3GuessRC" value="0" style="width:90px">
+              </label>
+              ${D3.decks > 1 ? `
+                <label class="small">True Count (TC, ±0.6 ok):
+                  <input type="number" id="d3GuessTC" step="0.5" value="0" style="width:90px">
+                </label>
+              ` : ''}
+              <button class="btn sm good" id="d3CheckBtn" ${D3.feedback?'disabled':''}>Verify Count</button>
+            </div>
+            ${D3.feedback ? `
+              <div class="callout ${D3.feedback.ok?'good':'trap'}" style="margin-top:10px;margin-bottom:0">
+                <div class="row">
+                  <strong>${D3.feedback.msg}</strong>
+                  <span class="sp"></span>
+                  <button class="btn xs" id="d3ToggleAuditBtn">${D3.showAudit?'Hide':'Show'} Card Audit (${D3.dealt.length})</button>
+                  ${cp.isFinal
+                    ? `<button class="btn sm primary" id="d3NewDeckAfterBtn">New 52-Card Deck →</button>`
+                    : `<button class="btn sm primary" id="d3ResumeBtn">Keep Counting →</button>`}
+                </div>
+                ${D3.showAudit ? `
+                  <div class="tape" style="margin-top:8px">
+                    ${(() => { let run=0; return D3.dealt.map((c,i)=>{ run+=c.tag; return `<span class="tape-item ${hiloClass(c.tag)}">#${i+1} ${c.face}${c.suit.sym} → <strong>${run>=0?'+'+run:run}</strong></span>`; }).join(''); })()}
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+function renderDrill4(){
+  return `
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <h2 style="margin:0">📐 Drill 4: Discard Tray Eyeball &amp; True Count Mental Math</h2>
+        <span class="sp"></span>
+        <span class="pill green">Score: ${D4.ok}/${D4.tot}</span>
+        <span class="pill blue">Streak: ${D4.streak}</span>
+        <button class="btn xs" id="d4NextBtn">Skip / New →</button>
+      </div>
+      <p class="small mut">Practice looking at an 8-deck discard tray, subtracting from 8 to get Remaining Decks, dividing RC in your head, and calling the right Pure Wonging bet size!</p>
+
+      <div class="split-2">
+        <div>${renderDiscardRackSVG(D4.dealtCards, 416, 50)}</div>
+        <div class="card-sub">
+          <div class="stat" style="margin-bottom:10px">
+            <div class="k">Current Running Count (RC)</div>
+            <div class="v">${D4.rc>=0?'+':''}${D4.rc}</div>
+            <div class="small mut">8-Deck Shoe · Pure Wonging enters at TC ≥ +1.5</div>
+          </div>
+
+          <div class="grid g2" style="margin-bottom:10px">
+            <label class="small">1. Est. Remaining Decks:
+              <select id="d4RemSel" style="width:100%;margin-top:4px">
+                ${[1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5].map(v => `<option value="${v}" ${v===4?'selected':''}>${v.toFixed(1)} Decks</option>`).join('')}
+              </select>
+            </label>
+            <label class="small">2. Mental True Count (±0.5):
+              <input type="number" id="d4TcInp" step="0.5" value="0" style="width:100%;margin-top:4px">
+            </label>
+          </div>
+          <label class="small">3. Pure Wonging Bet Call (₱50 Unit):
+            <select id="d4BetSel" style="width:100%;margin-top:4px">
+              <option value="0">₱0 — Sit Out &amp; Watch (TC &lt; +1.5)</option>
+              <option value="1">1× Unit ₱50 (+1.5 to +1.99)</option>
+              <option value="2">2× Units ₱100 (+2.0 to +2.99)</option>
+              <option value="3">3× Units ₱150 (+3.0 to +3.99)</option>
+              <option value="4">4× Units ₱200 (TC ≥ +4.0)</option>
+            </select>
+          </label>
+          <div class="row" style="margin-top:12px">
+            <button class="btn primary" id="d4CheckBtn" ${D4.feedback?'disabled':''}>Check Mental Math</button>
+            ${D4.feedback ? `<button class="btn good" id="d4NextAfterBtn">Next Scenario →</button>` : ''}
+          </div>
+          ${D4.feedback ? `
+            <div class="callout ${D4.feedback.ok?'good':'warn'}" style="margin-top:10px;margin-bottom:0">
+              <strong>${D4.feedback.msg}</strong>
+              <div class="small" style="margin-top:4px">${D4.feedback.detail}</div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDrill5(){
+  const sc = D5.scenario;
+  const tcCol = sc.tc >= 2 ? 'green' : (sc.tc >= 0 ? 'amber' : 'red');
+  const pEval = evalHand(sc.pCards.map(c=>c.rank));
+  const handTitle = sc.isInsurance ? 'Dealer Shows ACE — Insurance Offered!' : (pEval.isPair ? `Pair of ${sc.pCards[0].face}s` : (pEval.isSoft ? `Soft ${pEval.sum}` : `Hard ${pEval.sum}`));
+
+  return `
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <h2 style="margin:0">🧠 Drill 5: Basic Strategy &amp; Deviation Simulator</h2>
+        <span class="sp"></span>
+        <button class="btn xs ${D5.filter==='mixed'?'on':''}" data-d5-flt="mixed">Mixed Real Table</button>
+        <button class="btn xs ${D5.filter==='dev'?'on':''}" data-d5-flt="dev">Deviations Only</button>
+        <button class="btn xs ${D5.filter==='basic'?'on':''}" data-d5-flt="basic">Basic Strategy Only</button>
+      </div>
+      <div class="row small mut" style="margin-bottom:10px">
+        <span>Playtech 8-Deck S17 DAS rules. Check the live True Count first — does it flip Basic Strategy?</span>
+        <span class="sp"></span>
+        <span class="pill green">Score: ${D5.ok}/${D5.tot}</span>
+        <span class="pill blue">Streak: ${D5.streak} (Best ${S.bests.devBestStreak})</span>
+      </div>
+      <div class="felt">
+        <div class="row" style="justify-content:center;margin-bottom:12px">
+          <span class="pill ${tcCol}" style="font-size:14px;padding:5px 14px">Live True Count: ${sc.tc>=0?'+':''}${sc.tc.toFixed(1)}</span>
+          <span class="pill blue">${D5.feedback ? sc.cat : 'Playtech 8D S17'}</span>
+        </div>
+        <div class="split-even" style="text-align:center">
+          <div>
+            <div class="small mut" style="margin-bottom:5px">DEALER UPCARD</div>
+            <div class="cards-row">${renderCardHTML(sc.dCard, {showWheels:false})}${renderCardHTML(null, {faceDown:true, showWheels:false})}</div>
+          </div>
+          <div>
+            <div class="small mut" style="margin-bottom:5px">YOUR HAND (${handTitle})</div>
+            <div class="cards-row">${sc.pCards.map(c => renderCardHTML(c, {showWheels:false})).join('')}</div>
+          </div>
+        </div>
+        <div class="row" style="justify-content:center;margin-top:14px">
+          ${sc.isInsurance ? `
+            <button class="btn good" data-d5-ans="TAKE INS" ${D5.feedback?'disabled':''}>TAKE INSURANCE (2:1)</button>
+            <button class="btn danger" data-d5-ans="DECLINE" ${D5.feedback?'disabled':''}>DECLINE INSURANCE</button>
+          ` : `
+            <button class="btn good" data-d5-ans="S" ${D5.feedback?'disabled':''}>STAND</button>
+            <button class="btn amber" data-d5-ans="H" ${D5.feedback?'disabled':''}>HIT</button>
+            <button class="btn primary" data-d5-ans="D" ${D5.feedback?'disabled':''}>DOUBLE</button>
+            <button class="btn purple" data-d5-ans="P" ${D5.feedback?'disabled':''}>SPLIT</button>
+          `}
+        </div>
+        ${D5.feedback ? `
+          <div class="callout ${D5.feedback.ok?'good':'trap'}" style="margin-top:12px;margin-bottom:0">
+            <div class="row">
+              <strong>${D5.feedback.ok ? '✓ Optimal Play!' : '✕ Best Play: ' + ({S:'STAND',H:'HIT',D:'DOUBLE',P:'SPLIT','TAKE INS':'TAKE INSURANCE','DECLINE':'DECLINE INSURANCE'}[sc.act])}</strong>
+              <span class="sp"></span>
+              <button class="btn sm primary" id="d5NextBtn">Next Hand →</button>
+            </div>
+            <div class="small" style="margin-top:4px">${sc.why}</div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function wireDrillEvents(){
+  // D1
+  document.querySelectorAll('[data-d1-mode]').forEach(b => b.onclick = () => { D1.mode = b.dataset.d1Mode; startD1(); renderDrills(); });
+  const d1R = document.getElementById('d1RestartBtn'); if(d1R) d1R.onclick = () => { startD1(); renderDrills(); };
+  const d1P = document.getElementById('d1PlayAgainBtn'); if(d1P) d1P.onclick = () => { startD1(); renderDrills(); };
+  document.querySelectorAll('[data-d1-ans]').forEach(b => b.onclick = () => answerD1(+b.dataset.d1Ans));
+
+  // D2
+  document.querySelectorAll('[data-d2-n]').forEach(b => b.onclick = () => { D2.nCards = +b.dataset.d2N; dealD2(); });
+  document.querySelectorAll('[data-d2-f]').forEach(b => b.onclick = () => { D2.flashMs = +b.dataset.d2F; dealD2(); });
+  document.querySelectorAll('[data-d2-ans]').forEach(b => b.onclick = () => answerD2(+b.dataset.d2Ans));
+  const d2N = document.getElementById('d2NextBtn'); if(d2N) d2N.onclick = () => dealD2();
+  const d2R = document.getElementById('d2ReDealBtn'); if(d2R) d2R.onclick = () => dealD2();
+
+  // D3
+  document.querySelectorAll('[data-d3-decks]').forEach(b => b.onclick = () => { D3.decks = +b.dataset.d3Decks; resetD3(); renderDrills(); });
+  document.querySelectorAll('[data-d3-spd]').forEach(b => b.onclick = () => {
+    D3.speedMs = +b.dataset.d3Spd;
+    if(D3.running){ clearDrillTimers(); if(D3.speedMs > 0) toggleD3Auto(); else renderDrills(); }
+    else renderDrills();
+  });
+  const d3Res = document.getElementById('d3ResetBtn'); if(d3Res) d3Res.onclick = () => { resetD3(); renderDrills(); };
+  const d3Play = document.getElementById('d3PlayBtn'); if(d3Play) d3Play.onclick = () => toggleD3Auto();
+  const d3Step = document.getElementById('d3StepBtn'); if(d3Step) d3Step.onclick = () => stepD3();
+  const d3Chk = document.getElementById('d3CheckBtn');
+  if(d3Chk) d3Chk.onclick = () => {
+    const gRC = +document.getElementById('d3GuessRC').value;
+    const cp = D3.checkpoint;
+    let ok = (gRC === cp.actualRC);
+    let msg = '';
+    if(D3.decks > 1){
+      const gTC = +document.getElementById('d3GuessTC').value;
+      const tcOk = Math.abs(gTC - cp.actualTC) <= 0.65;
+      ok = ok && tcOk;
+      msg = ok
+        ? `✓ Dead on! RC = ${cp.actualRC>=0?'+':''}${cp.actualRC}, Exact TC = ${cp.actualTC>=0?'+':''}${cp.actualTC.toFixed(2)}`
+        : `Actual RC = ${cp.actualRC>=0?'+':''}${cp.actualRC}, Exact TC = ${cp.actualTC>=0?'+':''}${cp.actualTC.toFixed(2)} (${cp.remDecks.toFixed(1)}D left)`;
+    } else {
+      msg = ok
+        ? `✓ Exact! Running Count = ${cp.actualRC>=0?'+':''}${cp.actualRC}${cp.isFinal ? ' (Perfect 0 on 52 cards!)' : ''}`
+        : `Actual Running Count was ${cp.actualRC>=0?'+':''}${cp.actualRC}${cp.isFinal ? ' (A full 52-card deck ALWAYS sums to 0!)' : ''}`;
+    }
+    if(ok) S.bests.countdownPasses++;
+    D3.feedback = { ok, msg };
+    saveState();
+    renderDrills();
+  };
+  const d3Tog = document.getElementById('d3ToggleAuditBtn');
+  if(d3Tog) d3Tog.onclick = () => { D3.showAudit = !D3.showAudit; renderDrills(); };
+  const d3Next = document.getElementById('d3ResumeBtn');
+  if(d3Next) d3Next.onclick = () => {
+    D3.checkpoint = null; D3.feedback = null; D3.showAudit = false;
+    D3.nextCheckAt = D3.dealt.length + 12 + Math.floor(Math.random()*8);
+    if(D3.speedMs > 0) toggleD3Auto(); else renderDrills();
+  };
+  const d3New = document.getElementById('d3NewDeckAfterBtn');
+  if(d3New) d3New.onclick = () => { resetD3(); renderDrills(); };
+
+  // D4
+  const d4N = document.getElementById('d4NextBtn'); if(d4N) d4N.onclick = () => { nextD4(); renderDrills(); };
+  const d4NA = document.getElementById('d4NextAfterBtn'); if(d4NA) d4NA.onclick = () => { nextD4(); renderDrills(); };
+  const d4Chk = document.getElementById('d4CheckBtn');
+  if(d4Chk) d4Chk.onclick = () => {
+    const gRem = +document.getElementById('d4RemSel').value;
+    const gTC = +document.getElementById('d4TcInp').value;
+    const gBet = +document.getElementById('d4BetSel').value;
+    const exactTC = D4.rc / D4.remDecks;
+    const exactBet = exactTC >= 4 ? 4 : exactTC >= 3 ? 3 : exactTC >= 2 ? 2 : exactTC >= 1.5 ? 1 : 0;
+    const remOk = Math.abs(gRem - D4.remDecks) <= 0.6;
+    const tcOk = Math.abs(gTC - exactTC) <= 0.65;
+    const betOk = gBet === exactBet;
+    const ok = remOk && tcOk && betOk;
+    D4.tot++;
+    if(ok){ D4.ok++; D4.streak++; } else { D4.streak = 0; }
+    D4.feedback = {
+      ok,
+      msg: ok ? '✓ Pro-level deck estimation & mental division!' : 'Review the exact breakdown:',
+      detail: `Exact Rem = ${D4.remDecks.toFixed(1)}D · Exact TC = ${D4.rc} ÷ ${D4.remDecks.toFixed(1)} = ${exactTC>=0?'+':''}${exactTC.toFixed(2)} · Wonging Bet = ${exactBet===0?'₱0 Watch':exactBet+'× Unit'}`
+    };
+    saveState();
+    renderDrills();
+  };
+
+  // D5
+  document.querySelectorAll('[data-d5-flt]').forEach(b => b.onclick = () => { D5.filter = b.dataset.d5Flt; nextD5(); renderDrills(); });
+  document.querySelectorAll('[data-d5-ans]').forEach(b => b.onclick = () => {
+    const g = b.dataset.d5Ans;
+    const ok = g === D5.scenario.act;
+    D5.tot++;
+    if(ok){
+      D5.ok++; D5.streak++;
+      if(D5.streak > S.bests.devBestStreak) S.bests.devBestStreak = D5.streak;
+    } else D5.streak = 0;
+    D5.feedback = { ok };
+    saveState();
+    renderDrills();
+  });
+  const d5N = document.getElementById('d5NextBtn'); if(d5N) d5N.onclick = () => { nextD5(); renderDrills(); };
+}
+
+/* ============================================================================
+   5. TAB 3: "INSIDE YOUR TRACKER" GLASS-BOX SANDBOX & 1,000-SHOE MC LAB
+   ============================================================================ */
+let SB = {
+  tableId: 'allbets',
+  xrayVisible: true,
+  shoe: [],
+  rem: [128,32,32,32,32,32,32,32,32,32],
+  dealtHistory: [],
+  hands: [], // [{cards, bet, done, resText, net}]
+  activeHand: 0,
+  dCards: [],
+  dHoleRevealed: false,
+  phase: 'idle', // 'idle' | 'insurance' | 'player' | 'settled'
+  insTaken: false,
+  bankroll: 5000,
+  unit: 50,
+  rounds: 0,
+  lastMsg: 'Click "Watch Round (₱0)" or "Deal Hand" to step through a real shoe.'
+};
+
+let MC = {
+  mode: 'wong',
+  tableId: 'allbets',
+  bankroll: 5000,
+  result: null
+};
+
+function resetSandboxShoe(){
+  const spec = TABLE_SPECS[SB.tableId];
+  SB.shoe = createShuffledShoe(spec.decks);
+  SB.rem = [16*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks];
+  SB.dealtHistory = [];
+  SB.hands = [];
+  SB.activeHand = 0;
+  SB.dCards = [];
+  SB.dHoleRevealed = false;
+  SB.phase = 'idle';
+  SB.insTaken = false;
+  SB.lastMsg = `Fresh ${spec.decks}-deck shoe shuffled (${spec.decks * 52} cards, ${spec.cutPct}% cut at ${Math.round(spec.decks * 52 * spec.cutPct / 100)} cards).`;
+}
+
+function drawSandboxCard(countVisible = true){
+  const spec = TABLE_SPECS[SB.tableId];
+  if(SB.shoe.length < 15) resetSandboxShoe();
+  const c = SB.shoe.pop();
+  if(countVisible){
+    SB.rem[c.rank] = Math.max(0, SB.rem[c.rank] - 1);
+    SB.dealtHistory.push(c);
+  }
+  return c;
+}
+
+function revealDealerHoleCard(){
+  if(!SB.dHoleRevealed && SB.dCards.length >= 2){
+    const hole = SB.dCards[1];
+    SB.rem[hole.rank] = Math.max(0, SB.rem[hole.rank] - 1);
+    SB.dealtHistory.push(hole);
+    SB.dHoleRevealed = true;
+  }
+}
+
+function sbWatchRound(){
+  const spec = TABLE_SPECS[SB.tableId];
+  const dealtCount = SB.dealtHistory.length;
+  if(dealtCount >= Math.round(spec.decks * 52 * spec.cutPct / 100)){
+    resetSandboxShoe();
+    SB.lastMsg = 'Cut card reached! Reshuffled a fresh shoe.';
+    renderSandbox(); return;
+  }
+  SB.hands = []; SB.dCards = []; SB.dHoleRevealed = false; SB.phase = 'idle';
+  const passed = [];
+  for(let i=0; i<6; i++) passed.push(drawSandboxCard(true));
+  SB.rounds++;
+  const net = passed.reduce((a,c)=>a+c.tag, 0);
+  SB.lastMsg = `Watched round (₱0 Wong): ${passed.map(c=>c.face+c.suit.sym).join(' ')} (round Δ ${net>0?'+'+net:net}).`;
+  renderSandbox();
+}
+
+function sbDealHand(customUnits = null){
+  const spec = TABLE_SPECS[SB.tableId];
+  if(SB.dealtHistory.length >= Math.round(spec.decks * 52 * spec.cutPct / 100)){
+    resetSandboxShoe();
+  }
+  const m = computeShoeMetrics(SB.rem, spec.decks, spec.cutPct, spec);
+  const autoUnits = m.tc >= 4 ? 4 : m.tc >= 3 ? 3 : m.tc >= 2 ? 2 : m.tc >= 1.5 ? 1 : 1;
+  const units = customUnits !== null ? customUnits : autoUnits;
+  const bet = units * SB.unit;
+
+  const p1 = drawSandboxCard(true);
+  const d1 = drawSandboxCard(true);
+  const p2 = drawSandboxCard(true);
+  const d2 = drawSandboxCard(false); // hole card hidden until dealer resolves!
+
+  SB.hands = [{ cards:[p1, p2], bet, baseBet:bet, doubled:false, done:false, isSplit:false, fromAce:false, net:0, resText:'' }];
+  SB.activeHand = 0;
+  SB.dCards = [d1, d2];
+  SB.dHoleRevealed = false;
+  SB.insTaken = false;
+  SB.rounds++;
+
+  const pEval = evalHand([p1.rank, p2.rank]);
+  const dIsBJ = (d1.rank === 1 && d2.rank === 0) || (d1.rank === 0 && d2.rank === 1);
+
+  if(d1.rank === 1){
+    SB.phase = 'insurance';
+    SB.lastMsg = `Dealer shows Ace! Check remaining 10s % before deciding on Insurance (Break-even > 33.3%).`;
+  } else if(pEval.isBJ || (dIsBJ && spec.peekTen)){
+    revealDealerHoleCard();
+    sbSettleAll();
+  } else {
+    SB.phase = 'player';
+    SB.lastMsg = `Dealt ${units}× bet (${fmtPeso(bet)}). Compare your instinct against the Tracker X-Ray!`;
+  }
+  renderSandbox();
+}
+
+function sbInsurance(take){
+  SB.insTaken = take;
+  const d1 = SB.dCards[0], d2 = SB.dCards[1];
+  const dIsBJ = (d1.rank === 1 && d2.rank === 0) || (d1.rank === 0 && d2.rank === 1);
+  const pEval = evalHand(SB.hands[0].cards.map(c=>c.rank));
+  if(take){
+    const insStake = SB.hands[0].bet * 0.5;
+    SB.bankroll += dIsBJ ? insStake * 2 : -insStake;
+  }
+  if(dIsBJ || pEval.isBJ){
+    revealDealerHoleCard();
+    sbSettleAll();
+  } else {
+    SB.phase = 'player';
+    SB.lastMsg = `${take ? 'Took' : 'Declined'} Insurance — Dealer peeked: NO Blackjack! Play your hand.`;
+  }
+  renderSandbox();
+}
+
+function sbPlayerAction(act){
+  if(SB.phase !== 'player') return;
+  const spec = TABLE_SPECS[SB.tableId];
+  const h = SB.hands[SB.activeHand];
+  if(act === 'H'){
+    h.cards.push(drawSandboxCard(true));
+    const ev = evalHand(h.cards.map(c=>c.rank), h.isSplit);
+    if(ev.isBust || ev.sum === 21 || (spec.charlie10 && ev.nCards >= 10)){
+      h.done = true;
+      sbAdvanceHandOrDealer();
+    }
+  } else if(act === 'S'){
+    h.done = true;
+    sbAdvanceHandOrDealer();
+  } else if(act === 'D'){
+    h.bet *= 2;
+    h.doubled = true;
+    h.cards.push(drawSandboxCard(true));
+    h.done = true;
+    sbAdvanceHandOrDealer();
+  } else if(act === 'P'){
+    const c1 = h.cards[0], c2 = h.cards[1];
+    const isAce = c1.rank === 1;
+    h.cards = [c1, drawSandboxCard(true)];
+    h.isSplit = true; h.fromAce = isAce;
+    const h2 = { cards:[c2, drawSandboxCard(true)], bet:h.bet, baseBet:h.baseBet, doubled:false, done:isAce, isSplit:true, fromAce:isAce, net:0, resText:'' };
+    SB.hands.push(h2);
+    if(isAce){
+      h.done = true;
+      sbAdvanceHandOrDealer();
+    }
+  }
+  renderSandbox();
+}
+
+function sbAdvanceHandOrDealer(){
+  const next = SB.hands.findIndex(x => !x.done);
+  if(next !== -1){
+    SB.activeHand = next;
+    return;
+  }
+  revealDealerHoleCard();
+  const anyAlive = SB.hands.some(x => !evalHand(x.cards.map(c=>c.rank), x.isSplit).isBust && !evalHand(x.cards.map(c=>c.rank), x.isSplit).isBJ);
+  if(anyAlive){
+    let dEval = evalHand(SB.dCards.map(c=>c.rank));
+    while(dEval.sum < 17){
+      SB.dCards.push(drawSandboxCard(true));
+      dEval = evalHand(SB.dCards.map(c=>c.rank));
+    }
+  }
+  sbSettleAll();
+}
+
+function sbSettleAll(){
+  SB.phase = 'settled';
+  const spec = TABLE_SPECS[SB.tableId];
+  const dEval = evalHand(SB.dCards.map(c=>c.rank));
+  let totalNet = 0;
+  const msgs = [];
+  SB.hands.forEach((h, hi) => {
+    const pEval = evalHand(h.cards.map(c=>c.rank), h.isSplit);
+    let net = 0, lbl = '';
+    if(pEval.isBJ && dEval.isBJ){ net = 0; lbl = 'Push (Both BJ)'; }
+    else if(pEval.isBJ){ net = h.bet * 1.5; lbl = 'Blackjack 3:2!'; }
+    else if(dEval.isBJ){
+      if(spec.oboTen && (h.doubled || hi > 0)){
+        net = hi === 0 ? -h.baseBet : 0;
+        lbl = hi === 0 ? 'Dealer BJ (OBO kept double)' : 'Dealer BJ (OBO split refunded)';
+      } else {
+        net = -h.bet; lbl = 'Dealer Blackjack';
+      }
+    }
+    else if(pEval.isBust){ net = -h.bet; lbl = 'Bust'; }
+    else if(spec.charlie10 && pEval.nCards >= 10){ net = h.bet; lbl = '10-Card Charlie Win!'; }
+    else if(dEval.isBust){ net = h.bet; lbl = 'Win (Dealer Bust)'; }
+    else if(pEval.sum > dEval.sum){ net = h.bet; lbl = `Win (${pEval.sum} vs ${dEval.sum})`; }
+    else if(pEval.sum < dEval.sum){ net = -h.bet; lbl = `Loss (${pEval.sum} vs ${dEval.sum})`; }
+    else { net = 0; lbl = `Push (${pEval.sum})`; }
+    h.net = net; h.resText = lbl;
+    SB.bankroll += net;
+    totalNet += net;
+    msgs.push(`${lbl} (${fmtSign(net)})`);
+  });
+  SB.lastMsg = `Round settled: ${msgs.join(' · ')}`;
+}
+
+function initSandbox(){
+  if(!SB.shoe.length) resetSandboxShoe();
+  if(!MC.result) MC.result = runMonteCarloSim({
+    decks: TABLE_SPECS[MC.tableId].decks,
+    cutPct: TABLE_SPECS[MC.tableId].cutPct,
+    mode: MC.mode,
+    shoesPerPlayer: 100,
+    numPlayers: 10,
+    unitPeso: 50,
+    startBankroll: MC.bankroll
+  });
+}
+
+function renderSandbox(){
+  initSandbox();
+  const el = document.getElementById('tab-sandbox');
+  const spec = TABLE_SPECS[SB.tableId];
+  const m = computeShoeMetrics(SB.rem, spec.decks, spec.cutPct, spec);
+
+  // Betting verdict
+  let recUnits = 0, verdictTxt = '🛑 STOP & WATCH (₱0)', verdictCls = 'pill red';
+  if(m.tc >= 4.0){ recUnits = 4; verdictTxt = '🚀 MAX +EV — BET 4× (₱200)'; verdictCls = 'pill green'; }
+  else if(m.tc >= 3.0){ recUnits = 3; verdictTxt = '🔥 STRONG +EV — BET 3× (₱150)'; verdictCls = 'pill green'; }
+  else if(m.tc >= 2.0){ recUnits = 2; verdictTxt = '🟢 +EV — BET 2× (₱100)'; verdictCls = 'pill green'; }
+  else if(m.tc >= 1.5){ recUnits = 1; verdictTxt = '🟢 +EV WONG ENTRY — BET 1× (₱50)'; verdictCls = 'pill green'; }
+  else if(m.tc >= 1.0){ verdictTxt = '👀 BREAK-EVEN — WATCH ₱0'; verdictCls = 'pill amber'; }
+
+  // Hand Advisor during player phase
+  let handAdviceHTML = '';
+  if(SB.phase === 'player' && SB.hands[SB.activeHand]){
+    const h = SB.hands[SB.activeHand];
+    const pNums = h.cards.map(c=>c.rank);
+    const dUp = SB.dCards[0].rank;
+    const dp = solveLiveHandDP(pNums, dUp, SB.rem, m.totalRem, spec, {isSplitHand:h.isSplit, fromAceSplit:h.fromAce, canSplitMore:SB.hands.length<2});
+    const freshRem = [16*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks, 4*spec.decks];
+    let fTot = 52 * spec.decks;
+    for(const c of [...pNums, dUp]){ if(freshRem[c]>0){ freshRem[c]--; fTot--; } }
+    const freshDp = solveLiveHandDP(pNums, dUp, freshRem, fTot, spec, {isSplitHand:h.isSplit, fromAceSplit:h.fromAce, canSplitMore:SB.hands.length<2});
+    const isDev = dp.bestCode !== freshDp.bestCode;
+    const actMap = {S:'STAND', H:'HIT', D:'DOUBLE', P:'SPLIT'};
+    handAdviceHTML = `
+      <div class="callout ${isDev?'warn':'info'}" style="margin-bottom:0">
+        <div class="callout-title">${isDev ? '⚡ LIVE SHOE DEVIATION! (Flipped ' + actMap[freshDp.bestCode] + ' → ' + actMap[dp.bestCode] + ')' : '📐 Live DP Advisor: ' + actMap[dp.bestCode]}</div>
+        <div class="small">
+          EV(Stand): <code>${pctSign(dp.evStand,1)}</code> · EV(Hit): <code>${pctSign(dp.evHit,1)}</code>
+          ${dp.evDouble !== null ? ` · EV(Double): <code>${pctSign(dp.evDouble,1)}</code>` : ''}
+          ${dp.evSplit !== null ? ` · EV(Split): <code>${pctSign(dp.evSplit,1)}</code>` : ''}
+        </div>
+      </div>
+    `;
+  } else if(SB.phase === 'insurance'){
+    const take = m.tenProb > 1/3;
+    handAdviceHTML = `
+      <div class="callout ${take?'good':'trap'}" style="margin-bottom:0">
+        <strong>${take ? '⚡ TAKE INSURANCE (+EV!)' : '🛑 DECLINE INSURANCE (-EV)'}</strong>
+        <div class="small">Remaining 10s = <strong>${pct(m.tenProb,1)}</strong> (break-even is 33.3% · EV = ${pctSign(m.insEv,1)})</div>
+      </div>
+    `;
+  }
+
+  const mc = MC.result;
+  el.innerHTML = `
+    <div class="card">
+      <div class="row" style="margin-bottom:10px">
+        <h2 style="margin:0">🔬 Part A: Glass-Box Blackjack Table (Brain vs Tracker X-Ray)</h2>
+        <span class="sp"></span>
+        <select id="sbTableSel">
+          <option value="allbets" ${SB.tableId==='allbets'?'selected':''}>Playtech All Bets (8D · 50% Cut)</option>
+          <option value="vegas6" ${SB.tableId==='vegas6'?'selected':''}>Vegas 6-Deck (75% Cut)</option>
+        </select>
+        <button class="btn xs ${SB.xrayVisible?'on':''}" id="sbToggleXray">${SB.xrayVisible?'👁️ X-Ray: ON':'🙈 Blind Brain Mode'}</button>
+        <button class="btn xs danger" id="sbResetShoeBtn">↺ New Shoe</button>
+      </div>
+
+      <div class="split-2">
+        <!-- Left: Playable Table -->
+        <div class="felt">
+          <div class="row" style="margin-bottom:10px">
+            <span class="pill blue">Bankroll: ${fmtPeso(SB.bankroll)}</span>
+            <span class="pill">Rounds: ${SB.rounds}</span>
+            <span class="sp"></span>
+            <span class="small mut">${SB.dealtHistory.length} / ${m.cutCards} cards to Cut</span>
+          </div>
+
+          <div style="text-align:center;margin-bottom:14px">
+            <div class="small mut" style="margin-bottom:5px">DEALER ${SB.dHoleRevealed && SB.dCards.length ? `(${evalHand(SB.dCards.map(c=>c.rank)).sum})` : ''}</div>
+            <div class="cards-row" style="min-height:80px">
+              ${SB.dCards.length
+                ? SB.dCards.map((c,i)=>renderCardHTML(c, {size:'sm', faceDown:(i===1 && !SB.dHoleRevealed)})).join('')
+                : '<span class="small mut">No cards dealt yet</span>'}
+            </div>
+          </div>
+
+          <div style="text-align:center;margin-bottom:14px">
+            <div class="small mut" style="margin-bottom:5px">YOUR HAND(S)</div>
+            ${SB.hands.length ? SB.hands.map((h, hi) => {
+              const ev = evalHand(h.cards.map(c=>c.rank), h.isSplit);
+              return `
+                <div style="margin-bottom:8px;padding:6px;border-radius:10px;border:1px solid ${SB.phase==='player'&&hi===SB.activeHand?'#60a5fa':'rgba(255,255,255,0.12)'}">
+                  <div class="small" style="margin-bottom:4px">
+                    ${SB.hands.length>1?`Hand #${hi+1} · `:''}Total: <strong>${ev.isSoft?'Soft ':''}${ev.sum}</strong> · Bet: ${fmtPeso(h.bet)}
+                    ${h.resText ? ` · <span class="${h.net>0?'pos':h.net<0?'neg':'mut'}">${h.resText}</span>` : ''}
+                  </div>
+                  <div class="cards-row" style="min-height:74px">${h.cards.map(c=>renderCardHTML(c,{size:'sm'})).join('')}</div>
+                </div>
+              `;
+            }).join('') : '<div class="cards-row" style="min-height:74px"><span class="small mut">Choose "Watch (₱0)" or "Deal Hand" below</span></div>'}
+          </div>
+
+          <div class="row" style="justify-content:center;gap:7px">
+            ${SB.phase === 'idle' || SB.phase === 'settled' ? `
+              <button class="btn" id="sbWatchBtn">👀 Watch Round (₱0 Wong)</button>
+              <button class="btn good" id="sbDealRecBtn">🃏 Deal (${recUnits>0?recUnits+'× Rec': '1× Min ₱50'})</button>
+            ` : SB.phase === 'insurance' ? `
+              <button class="btn good" id="sbInsYesBtn">⚡ Take Insurance</button>
+              <button class="btn danger" id="sbInsNoBtn">🛑 Decline Insurance</button>
+            ` : `
+              <button class="btn good" data-sb-act="S">STAND</button>
+              <button class="btn amber" data-sb-act="H">HIT</button>
+              <button class="btn primary" data-sb-act="D" ${SB.hands[SB.activeHand].cards.length!==2?'disabled':''}>DOUBLE</button>
+              <button class="btn purple" data-sb-act="P" ${(SB.hands[SB.activeHand].cards.length!==2 || SB.hands[SB.activeHand].cards[0].rank!==SB.hands[SB.activeHand].cards[1].rank || SB.hands.length>=2)?'disabled':''}>SPLIT</button>
+            `}
+          </div>
+
+          <div class="small mut" style="text-align:center;margin-top:10px">${SB.lastMsg}</div>
+          <div style="margin-top:10px">
+            <div class="small mut" style="margin-bottom:4px">Recent Card Tape (What your brain just saw):</div>
+            <div class="tape">
+              ${SB.dealtHistory.slice(-10).map(c => `<span class="tape-item ${hiloClass(c.tag)}">${c.face}${c.suit.sym} (${hiloText(c.tag)})</span>`).join('') || '<span class="small mut">Empty</span>'}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Tracker X-Ray -->
+        <div class="card-sub">
+          ${!SB.xrayVisible ? `
+            <div style="text-align:center;padding:30px 12px">
+              <div style="font-size:34px">🙈</div>
+              <h3>Blind Brain Mode Active</h3>
+              <p class="small mut">Keep the Running Count &amp; True Count in your head as you play or watch rounds. Click below anytime to audit yourself against the tracker!</p>
+              <button class="btn primary" id="sbPeekXrayBtn">👁️ Reveal Tracker X-Ray</button>
+            </div>
+          ` : `
+            <div class="row" style="margin-bottom:8px">
+              <strong>📡 Tracker X-Ray (Live Engine)</strong>
+              <span class="sp"></span>
+              <span class="${verdictCls}">${verdictTxt}</span>
+            </div>
+            <div class="grid g2" style="margin-bottom:10px">
+              <div class="stat"><div class="k">Running / True Count</div><div class="v ${m.tc>=1.5?'pos':m.tc<0?'neg':''}">${m.rc>=0?'+':''}${m.rc} / TC ${m.tc>=0?'+':''}${m.tc.toFixed(2)}</div><div class="small mut">${m.remDecks.toFixed(2)} decks left</div></div>
+              <div class="stat"><div class="k">Hi-Lo vs Exact EoR Edge</div><div class="v ${m.eorEdge>=0?'pos':'neg'}">${pctSign(m.eorEdge,2)}</div><div class="small mut">Hi-Lo approx: ${pctSign(m.hiloEdge,2)}</div></div>
+              <div class="stat"><div class="k">Dead-Shoe Reach (+1.5)</div><div class="v">${Math.round(m.reachPlusProb*100)}%</div><div class="small mut">${Math.max(0, m.cutCards - m.seenCount)} cards left to Cut</div></div>
+              <div class="stat"><div class="k">Remaining 10s / BJ %</div><div class="v">${pct(m.tenProb,1)}</div><div class="small mut">Ins EV: ${pctSign(m.insEv,1)}</div></div>
+            </div>
+            ${handAdviceHTML}
+            <div style="margin-top:10px">${renderDiscardRackSVG(SB.dealtHistory.length, m.totalInit, spec.cutPct)}</div>
+          `}
+        </div>
+      </div>
+    </div>
+
+    <!-- Part B: 1,000-Shoe Monte Carlo Simulator -->
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <h2 style="margin:0">📊 Part B: 1,000-Shoe Reality Simulator (Variance &amp; Wonging Proof)</h2>
+        <span class="sp"></span>
+        <button class="btn sm good" id="mcRunBtn">▶ Run Fresh 1,000 Shoes</button>
+      </div>
+      <div class="row" style="margin-bottom:10px;gap:10px">
+        <label class="small">Strategy:
+          <select id="mcModeSel">
+            <option value="wong" ${MC.mode==='wong'?'selected':''}>Pure Wonging (₱0 Wait &lt; +1.5, 1–4× Ramp)</option>
+            <option value="playall" ${MC.mode==='playall'?'selected':''}>Play-All (1× on Negative, 1–4× Ramp)</option>
+            <option value="flat" ${MC.mode==='flat'?'selected':''}>Flat Bet ₱50 (No Counting)</option>
+          </select>
+        </label>
+        <label class="small">Table Rules:
+          <select id="mcTableSel">
+            <option value="allbets" ${MC.tableId==='allbets'?'selected':''}>Playtech 8-Deck (50% Cut)</option>
+            <option value="vegas6" ${MC.tableId==='vegas6'?'selected':''}>Vegas 6-Deck (75% Cut)</option>
+          </select>
+        </label>
+        <label class="small">Starting Bankroll (₱50 unit):
+          <select id="mcBankSel">
+            <option value="1000" ${MC.bankroll===1000?'selected':''}>₱1,000 (20 units — Tracker Default)</option>
+            <option value="2500" ${MC.bankroll===2500?'selected':''}>₱2,500 (50 units)</option>
+            <option value="5000" ${MC.bankroll===5000?'selected':''}>₱5,000 (100 units — Recommended)</option>
+            <option value="10000" ${MC.bankroll===10000?'selected':''}>₱10,000 (200 units)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="row small" style="margin-bottom:6px;gap:12px">
+        <span style="color:#fff;font-weight:700">━━ Mean Bankroll (10 Players)</span>
+        <span style="color:#94a3b8;font-weight:700">··· Individual Player Paths</span>
+        <span style="color:#ef4444;font-weight:700">┆ ₱0 Bust Line</span>
+      </div>
+      <canvas id="mcChart" height="250"></canvas>
+
+      <div class="grid g4" style="margin-top:12px">
+        <div class="stat"><div class="k">Shoes Reaching TC ≥ +1.5</div><div class="v">${pct(mc.shoesHit15Pct,1)}</div><div class="small mut">${pct(mc.roundsPosPct,1)} of all rounds ≥ +1.5</div></div>
+        <div class="stat"><div class="k">Avg 100-Shoe Profit / Player</div><div class="v ${mc.avgProfitPerPlayer>=0?'pos':'neg'}">${fmtSign(mc.avgProfitPerPlayer,0)}</div><div class="small mut">ROI on wagered: ${pctSign(mc.roi,2)}</div></div>
+        <div class="stat"><div class="k">Avg Max Drawdown Swing</div><div class="v warn">${fmtPeso(mc.avgMaxDrawdown,0)}</div><div class="small mut">${(mc.avgMaxDrawdown/50).toFixed(1)} units peak-to-trough</div></div>
+        <div class="stat"><div class="k">Sample Bust Rate (&le; ₱0)</div><div class="v ${mc.sampleBustRate>0?'neg':'pos'}">${pct(mc.sampleBustRate,0)}</div><div class="small mut">${Math.round(mc.sampleBustRate*10)} of 10 players busted</div></div>
+      </div>
+      <div class="small mut" style="margin-top:8px">
+        <strong>What the lines teach:</strong> Each faint line is 1 simulated player over 100 shoes (1,000 shoes total). Notice how wildly individual lines swing even when the thick white average slopes UP in Pure Wonging — and try switching Bankroll to <code>₱1,000 (20 units)</code> to see why small rolls bust from normal variance!
+      </div>
+    </div>
+  `;
+
+  wireSandboxEvents();
+  drawMCChart();
+}
+
+function drawMCChart(){
+  const canvas = document.getElementById('mcChart');
+  if(!canvas || !MC.result) return;
+  const rect = canvas.getBoundingClientRect();
+  if(!rect.width) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = rect.width, H = 250;
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const mc = MC.result;
+  let minY = 0, maxY = mc.startBankroll * 1.4;
+  for(const p of mc.paths){
+    for(const v of p){
+      if(v < minY) minY = v;
+      if(v > maxY) maxY = v;
+    }
+  }
+  const pad = Math.max(250, (maxY - minY) * 0.1);
+  minY -= pad; maxY += pad;
+
+  const L = 62, R = 16, T = 20, B = 28;
+  const pw = W - L - R, ph = H - T - B;
+  const xOf = k => L + (k / mc.shoesPerPlayer) * pw;
+  const yOf = v => T + (1 - (v - minY) / (maxY - minY)) * ph;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = '#1f2937'; ctx.lineWidth = 1;
+  for(let k = 0; k <= mc.shoesPerPlayer; k += 20){
+    const x = xOf(k);
+    ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, H - B); ctx.stroke();
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(`Shoe ${k}`, x, H - 9);
+  }
+  for(let i = 0; i <= 4; i++){
+    const v = minY + (maxY - minY) * (i / 4);
+    const y = yOf(v);
+    ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - R, y); ctx.stroke();
+    ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'right';
+    ctx.fillText('₱' + Math.round(v).toLocaleString(), L - 6, y + 3.5);
+  }
+
+  // Zero bust line & Starting bankroll line
+  if(minY < 0 && maxY > 0){
+    const y0 = yOf(0);
+    ctx.strokeStyle = 'rgba(239,68,68,0.5)'; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(L, y0); ctx.lineTo(W - R, y0); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  const ys = yOf(mc.startBankroll);
+  ctx.strokeStyle = 'rgba(148,163,184,0.45)'; ctx.setLineDash([5,5]);
+  ctx.beginPath(); ctx.moveTo(L, ys); ctx.lineTo(W - R, ys); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Individual 10 player paths
+  const colors = ['#38bdf8','#a78bfa','#34d399','#fbbf24','#f87171','#818cf8','#2dd4bf','#fb923c','#f472b6','#60a5fa'];
+  mc.paths.forEach((p, idx) => {
+    ctx.strokeStyle = colors[idx % colors.length];
+    ctx.globalAlpha = 0.34;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    p.forEach((v, k) => {
+      const x = xOf(k), y = yOf(v);
+      if(k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  });
+
+  // Mean curve
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  for(let k = 0; k <= mc.shoesPerPlayer; k++){
+    const x = xOf(k), y = yOf(mc.avgCurve[k]);
+    if(k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+function wireSandboxEvents(){
+  const sbTbl = document.getElementById('sbTableSel');
+  if(sbTbl) sbTbl.onchange = () => { SB.tableId = sbTbl.value; resetSandboxShoe(); renderSandbox(); };
+  const sbX = document.getElementById('sbToggleXray');
+  if(sbX) sbX.onclick = () => { SB.xrayVisible = !SB.xrayVisible; renderSandbox(); };
+  const sbPeek = document.getElementById('sbPeekXrayBtn');
+  if(sbPeek) sbPeek.onclick = () => { SB.xrayVisible = true; renderSandbox(); };
+  const sbRes = document.getElementById('sbResetShoeBtn');
+  if(sbRes) sbRes.onclick = () => { resetSandboxShoe(); renderSandbox(); };
+  const sbW = document.getElementById('sbWatchBtn');
+  if(sbW) sbW.onclick = () => sbWatchRound();
+  const sbD = document.getElementById('sbDealRecBtn');
+  if(sbD) sbD.onclick = () => sbDealHand();
+  const sbIY = document.getElementById('sbInsYesBtn');
+  if(sbIY) sbIY.onclick = () => sbInsurance(true);
+  const sbIN = document.getElementById('sbInsNoBtn');
+  if(sbIN) sbIN.onclick = () => sbInsurance(false);
+  document.querySelectorAll('[data-sb-act]').forEach(b => b.onclick = () => sbPlayerAction(b.dataset.sbAct));
+
+  const runMC = () => {
+    MC.mode = document.getElementById('mcModeSel').value;
+    MC.tableId = document.getElementById('mcTableSel').value;
+    MC.bankroll = +document.getElementById('mcBankSel').value;
+    MC.result = runMonteCarloSim({
+      decks: TABLE_SPECS[MC.tableId].decks,
+      cutPct: TABLE_SPECS[MC.tableId].cutPct,
+      mode: MC.mode,
+      shoesPerPlayer: 100,
+      numPlayers: 10,
+      unitPeso: 50,
+      startBankroll: MC.bankroll
+    });
+    renderSandbox();
+  };
+  const mcBtn = document.getElementById('mcRunBtn'); if(mcBtn) mcBtn.onclick = runMC;
+  const mcM = document.getElementById('mcModeSel'); if(mcM) mcM.onchange = runMC;
+  const mcT = document.getElementById('mcTableSel'); if(mcT) mcT.onchange = runMC;
+  const mcB = document.getElementById('mcBankSel'); if(mcB) mcB.onchange = runMC;
+}
+
+/* ============================================================================
+   6. TAB 4: CHEAT SHEET, DYNAMIC 8-DECK MATRIX & TRACKER DICTIONARY
+   ============================================================================ */
+let _cachedFreshMatrix = null;
+let _refCellExplain = 'Click any colored square in the Basic Strategy tables below to see the exact EV math & Rule-of-10 intuition!';
+
+function getFreshMatrix(){
+  if(_cachedFreshMatrix) return _cachedFreshMatrix;
+  const upCols = [2,3,4,5,6,7,8,9,0,1];
+  const calc = (pSample, dUp) => {
+    const rem = [128,32,32,32,32,32,32,32,32,32];
+    for(const c of [...pSample, dUp]){ const k = c===10?0:c; rem[k]--; }
+    return solveLiveHandDP(pSample, dUp, rem, 413, TABLE_SPECS.allbets);
+  };
+  const hardRows = [
+    {lbl:'17+', p:[0,7]}, {lbl:'16', p:[0,6]}, {lbl:'15', p:[0,5]}, {lbl:'14', p:[0,4]},
+    {lbl:'13', p:[0,3]}, {lbl:'12', p:[0,2]}, {lbl:'11', p:[6,5]}, {lbl:'10', p:[6,4]},
+    {lbl:'9', p:[5,4]}, {lbl:'8', p:[5,3]}
+  ];
+  const softRows = [
+    {lbl:'A,9 (20)', p:[1,9]}, {lbl:'A,8 (19)', p:[1,8]}, {lbl:'A,7 (18)', p:[1,7]},
+    {lbl:'A,6 (17)', p:[1,6]}, {lbl:'A,5 (16)', p:[1,5]}, {lbl:'A,4 (15)', p:[1,4]},
+    {lbl:'A,3 (14)', p:[1,3]}, {lbl:'A,2 (13)', p:[1,2]}
+  ];
+  const pairRows = [
+    {lbl:'A,A', p:[1,1]}, {lbl:'10,10', p:[0,0]}, {lbl:'9,9', p:[9,9]}, {lbl:'8,8', p:[8,8]},
+    {lbl:'7,7', p:[7,7]}, {lbl:'6,6', p:[6,6]}, {lbl:'5,5', p:[5,5]}, {lbl:'4,4', p:[4,4]},
+    {lbl:'3,3', p:[3,3]}, {lbl:'2,2', p:[2,2]}
+  ];
+  const mapRow = rows => rows.map(r => ({
+    lbl: r.lbl,
+    cells: upCols.map(u => ({ u, dp: calc(r.p, u) }))
+  }));
+  _cachedFreshMatrix = {
+    upCols,
+    hard: mapRow(hardRows),
+    soft: mapRow(softRows),
+    pair: mapRow(pairRows)
+  };
+  return _cachedFreshMatrix;
+}
+
+function renderReference(){
+  const el = document.getElementById('tab-reference');
+  const mx = getFreshMatrix();
+  const actName = {S:'STAND', H:'HIT', D:'DOUBLE', P:'SPLIT'};
+
+  const renderTbl = (title, rows, grpKey) => `
+    <div class="tbl-wrap">
+      <h3>${title}</h3>
+      <table class="strat-tbl">
+        <thead><tr><th>Hand</th>${mx.upCols.map(u=>`<th>${RANK_LABEL[u]}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${rows.map((r, ri) => `
+            <tr>
+              <td><strong>${r.lbl}</strong></td>
+              ${r.cells.map((c, ci) => `
+                <td class="c-${c.dp.bestCode}" data-ref-cell="${grpKey}:${ri}:${ci}">${c.dp.bestCode}</td>
+              `).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const dict = [
+    ['RC (Running Count)', 'Raw total of +1 / 0 / -1 tags seen since the shuffle. Needs to be divided by Remaining Decks before betting big.'],
+    ['TC (True Count)', 'RC ÷ Remaining Decks. Measures the actual concentration of leftover 10s & Aces per deck.'],
+    ['EoR (Effect of Removal)', 'Exact % change in player edge when specific cards leave the shoe. For example, losing a 5 helps +0.69%/deck, while losing an Ace hurts -0.59%/deck.'],
+    ['Cut Card & Penetration', 'How deep the dealer deals before shuffling. Playtech cuts around 50% (4 of 8 decks); physical casinos often deal 75% (stronger True Counts!).'],
+    ['Pure Wonging', 'Sitting out at ₱0 during negative/neutral counts and only entering when TC ≥ +1.5 (where your edge turns positive).'],
+    ['Dead-Shoe Reach %', 'Your tracker’s probability estimate (via Brownian reflection) that a negative shoe can still bounce back to TC ≥ +1.5 before hitting the cut card.'],
+    ['S17 vs H17', 'Dealer Stands on Soft 17 (S17 — better for you, standard on Playtech!) vs Hits Soft 17 (H17).'],
+    ['Ace-Peek / OBO', 'Dealer checks for Blackjack when showing Ace (Insurance settles immediately). On Playtech All Bets, doubled/split bets are returned if dealer flips 10+A (OBO).'],
+    ['★ Deviation', 'Any hand where the live shoe’s True Count flips Basic Strategy (e.g. Standing on 16 vs 10 at TC ≥ 0 instead of Hitting).']
+  ];
+
+  el.innerHTML = `
+    <div class="card">
+      <h2>🃏 Hi-Lo Quick Pocket Card</h2>
+      <div class="grid g3">
+        <div class="stat" style="border-color:#166534;background:#0b2014"><div class="k pos">LOW CARDS (Good when dealt)</div><div class="v pos">2, 3, 4, 5, 6 → +1</div></div>
+        <div class="stat"><div class="k">NEUTRAL (Ignore completely)</div><div class="v">7, 8, 9 → 0</div></div>
+        <div class="stat" style="border-color:#7f1d1d;background:#241013"><div class="k neg">HIGH CARDS (Bad when dealt)</div><div class="v neg">10, J, Q, K, A → -1</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <h2 style="margin:0">📐 Playtech 8-Deck S17 DAS Basic Strategy (Solved Live)</h2>
+        <span class="sp"></span>
+        <span class="pill green">S = Stand</span>
+        <span class="pill amber">H = Hit</span>
+        <span class="pill blue">D = Double</span>
+        <span class="pill purple">P = Split</span>
+      </div>
+      <div class="callout info" id="refCellBox" style="margin:10px 0">${_refCellExplain}</div>
+      <div class="grid g3">
+        ${renderTbl('Hard Totals', mx.hard, 'hard')}
+        ${renderTbl('Soft Totals', mx.soft, 'soft')}
+        ${renderTbl('Pairs (DAS)', mx.pair, 'pair')}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🧠 Top Beginner Priority Deviations (Illustrious 18 Core)</h2>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Priority</th><th>Hand vs Dealer</th><th>Basic</th><th>Deviation</th><th>True Count Trigger</th><th>Plain-English Why</th></tr></thead>
+          <tbody>
+            ${DEVIATION_CATALOG.map((d, i) => `
+              <tr>
+                <td><span class="pill ${i<2?'green':'blue'}">#${i+1}</span></td>
+                <td><strong>${d.title}</strong></td>
+                <td>${d.basic}</td>
+                <td><strong class="pos">${d.dev}</strong></td>
+                <td><code>TC ${d.dir} ${d.indexTC>=0?'+'+d.indexTC:d.indexTC}</code></td>
+                <td class="small mut">${d.why}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📖 Tracker-to-Brain Dictionary</h2>
+      <div class="tbl-wrap">
+        <table>
+          <tbody>
+            ${dict.map(([term, desc]) => `<tr><td style="width:210px"><strong>${term}</strong></td><td class="small mut">${desc}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <span class="small mut">Want to practice resetting your saved progress?</span>
+        <span class="sp"></span>
+        <button class="btn xs danger" id="resetProgressBtn">Reset Academy Progress</button>
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('[data-ref-cell]').forEach(td => {
+    td.onclick = () => {
+      const [grp, ri, ci] = td.dataset.refCell.split(':');
+      const row = mx[grp][+ri];
+      const cell = row.cells[+ci];
+      const dp = cell.dp;
+      const dLbl = RANK_LABEL[cell.u];
+      _refCellExplain = `<strong>${row.lbl} vs Dealer ${dLbl}: Best Play = ${actName[dp.bestCode]}</strong> · Live Fresh-Shoe EVs → Stand: <code>${pctSign(dp.evStand,2)}</code>, Hit: <code>${pctSign(dp.evHit,2)}</code>${dp.evDouble!==null?`, Double: <code>${pctSign(dp.evDouble,2)}</code>`:''}${dp.evSplit!==null?`, Split: <code>${pctSign(dp.evSplit,2)}</code>`:''}`;
+      document.getElementById('refCellBox').innerHTML = _refCellExplain;
+    };
+  });
+
+  const rstBtn = document.getElementById('resetProgressBtn');
+  if(rstBtn) rstBtn.onclick = () => {
+    if(confirm('Reset all lesson completion & drill personal bests?')){
+      S = defaultState();
+      saveState();
+      render();
+    }
+  };
+}
+
+/* ============================================================================
+   7. NAVIGATION, KEYBOARD SHORTCUTS & INIT
+   ============================================================================ */
+function updateHeaderUI(){
+  const done = S.completedLessons.length;
+  document.getElementById('hdrProgText').textContent = `${done}/${LESSONS.length} Lessons`;
+  document.getElementById('hdrProgFill').style.width = `${Math.round(done / LESSONS.length * 100)}%`;
+  const wBtn = document.getElementById('toggleWheelsBtn');
+  wBtn.textContent = `🏋️ Training Wheels: ${S.trainingWheels ? 'ON' : 'OFF'}`;
+  wBtn.className = `btn xs ${S.trainingWheels ? 'wheels-on' : ''}`;
+}
+
+function switchTab(tab){
+  clearDrillTimers();
+  S.tab = tab;
+  saveState();
+  render();
+}
+
+function render(){
+  updateHeaderUI();
+  document.querySelectorAll('nav.main-nav button').forEach(b => {
+    b.classList.toggle('on', b.dataset.tab === S.tab);
+  });
+  ['learn','drills','sandbox','reference'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('hide', t !== S.tab);
+  });
+  if(S.tab === 'learn') renderLearn();
+  else if(S.tab === 'drills') renderDrills();
+  else if(S.tab === 'sandbox') renderSandbox();
+  else renderReference();
+}
+
+document.querySelectorAll('nav.main-nav button').forEach(b => {
+  b.onclick = () => switchTab(b.dataset.tab);
+});
+
+document.getElementById('toggleWheelsBtn').onclick = () => {
+  S.trainingWheels = !S.trainingWheels;
+  saveState();
+  render();
+};
+
+document.addEventListener('keydown', e => {
+  if(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+  if(S.tab === 'drills' && S.drillMode === 'flash'){
+    if(e.key === '1' || e.key === 'ArrowLeft'){ e.preventDefault(); answerD1(1); }
+    else if(e.key === '2' || e.key === 'ArrowDown'){ e.preventDefault(); answerD1(0); }
+    else if(e.key === '3' || e.key === 'ArrowRight'){ e.preventDefault(); answerD1(-1); }
+  } else if(S.tab === 'drills' && S.drillMode === 'countdown'){
+    if(e.code === 'Space' && !D3.checkpoint){ e.preventDefault(); stepD3(); }
+  }
+});
+
+window.addEventListener('resize', () => {
+  if(S.tab === 'learn' && LESSONS[S.lessonIdx]?.id === 'L7') drawL7CrossoverChart();
+  if(S.tab === 'sandbox') drawMCChart();
+});
+
+render();
+</script>
+</body>
+</html>
